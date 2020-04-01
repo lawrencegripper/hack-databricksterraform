@@ -7,6 +7,7 @@ function Get-ResourceState($resources, $address) {
 
 Describe "Terraform Deployment" { 
     Context "with clean tfstate" {
+        # Remove state so no resources current tracked by tf
         Remove-Item ./terraform.tfstate -Force
 
         # Set variables for Terraform
@@ -120,7 +121,7 @@ Describe "Terraform Destroy" {
         }
 
         It "cleans up whole resourcegroup" {
-            az resource delete --ids $resourceGroup.val
+            az resource delete --ids $resourceGroup.values.id
             $LASTEXITCODE | Should -Be 0
         }
     }
