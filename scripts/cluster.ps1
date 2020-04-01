@@ -12,7 +12,7 @@ function Get-Stdin {
 }
 # DatabricksCLI
 function Invoke-DatabricksCLI($command) {
-    & $command
+    Invoke-Expression $command
 }
 
 
@@ -39,15 +39,15 @@ function create {
     $createResult = databricks clusters create --json-file ./clustercreate.json
     Test-ForDatabricksError $createResult
 
+    # Cleanup temp file
+    Remove-Item -Path ./clustercreate.json
+    
+    $clusterID = Get-ClusterIDFromJSON $createResult
+    Wait-ForClusterState $clusterID "RUNNING"
+
     # Write json to stdout for provider to pickup and store state in terraform 
     # importantly this allows us to track the `cluster_id` property for future read/update/delete ops
     write-host $createResult
-
-    # Cleanup temp file
-    Remove-Item -Path ./clustercreate.json
-
-    $clusterID = Get-ClusterIDFromJSON $createResult
-    Wait-ForClusterState $clusterID "RUNNING"
 }
 
 function read {
@@ -127,11 +127,15 @@ function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
     # Wait for cluster to be ready
     $state = ""
     do {
-        $getResult = Invoke-DatabricksCLI "databricks clusters get --cluster-id $clusterID"
-        Test-ForDatabricksError $getResult
+        try {
+            $getResult = Invoke-DatabricksCLI "databricks clusters get --cluster-id $clusterID"
+            Test-ForDatabricksError $getResult
 
-        $state = $getResult | Convertfrom-json | select-object -expandproperty state
-        Write-Host "Checking cluster state. Have: $state Want: $wantedState or $alternativeState. Sleeping for 5secs"
+            $state = $getResult | Convertfrom-json | select-object -expandproperty state
+            Write-Host "Checking cluster state. Have: $state Want: $wantedState or $alternativeState. Sleeping for 5secs"
+        } catch {
+            Write-Host "Failed to get $clusterID, retrying..."
+        }
         Start-Sleep -Seconds 5    
     } until ($state -eq $wantedState -or $state -eq $alternativeState)
 
@@ -155,6 +159,7 @@ function Test-ForDatabricksError($response) {
         Throw "Failed to execute Databricks CLI. Error: $response"
     }
 
+    # Check the response is valid JSON
     $response | ConvertFrom-Json
 }
 

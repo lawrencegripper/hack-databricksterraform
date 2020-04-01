@@ -4,7 +4,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "test"
+  name     = "test12345"
   location = "eastus" # note must be lower without spaces not verbose style
 }
 
@@ -45,7 +45,7 @@ resource "shell_script" "cluster" {
 
   environment = {
     machine_sku      = "Standard_D3_v2"
-    worker_nodes     = 3
+    worker_nodes     = 4
     DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
   }
