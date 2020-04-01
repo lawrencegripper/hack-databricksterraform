@@ -58,7 +58,11 @@ Describe "Terraform Deployment" {
             { $responseRaw | ConvertFrom-Json } | Should -Not -Throw -Because "Valid json should be returned by the databricks cli"
 
             $response = $responseRaw | ConvertFrom-Json
-            $response.state | Should -Be "RUNNING"
+            if ($cluster.values.environment.wait_for_state) {
+                $response.state | Should -Be $cluster.values.environment.wait_for_state
+            } else {
+                $response.state | Should -Be "RUNNING"
+            }
         }
 
         It "returns an empty plan when re-run" {
@@ -106,7 +110,7 @@ Describe "Terraform Destroy" {
 
         It "destroy the cluster and check it's terminated" {
             Write-host "Destroying terraform"
-            $tfOutput = terraform destroy -auto-approve -target='shell_script.cluster'
+            $tfOutput = terraform destroy -var group_name=$resourceGroup.values.name -auto-approve -target='shell_script.cluster'
             $LASTEXITCODE | Should -Be 0
 
             Write-Host $tfOutput
@@ -117,11 +121,11 @@ Describe "Terraform Destroy" {
             $ENV:DATABRICKS_TOKEN = $patToken.values.output.token_value
 
             $response = databricks clusters get --cluster-id $cluster.values.output.cluster_id | ConvertFrom-Json 
-            $response.state | Should -Be "TERMINATED"
+            $response.state | Should -BeLike "TERMINAT*" -Because "Should either be terminated or terminating"
         }
 
-        It "cleans up whole resourcegroup" {
-            az resource delete --ids $resourceGroup.values.id
+        It "cleans up whole resource group" {
+            az group delete --name $resourceGroup.values.name  --no-wait -y
             $LASTEXITCODE | Should -Be 0
         }
     }
