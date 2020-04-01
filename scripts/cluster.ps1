@@ -121,7 +121,9 @@ function delete {
     $clusterID = Get-ClusterIDFromTFState
 
     $deleteResult = databricks clusters delete --cluster-id $clusterID
-    Test-ForDatabricksError $deleteResult
+    if ($deleteResult -like "Error: *") {
+        Throw "Failed to execute Databricks CLI. Error: $response"
+    }
     
     Write-Host "Cluster deleted"
 
