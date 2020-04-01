@@ -31,6 +31,18 @@ Info: https://code.visualstudio.com/docs/remote/containers
 
 ## Logs
 
+### Option 1 
+
+Set `debug_log` to `true` in the terraform resource you want to debug and you'll get `cluster.[create|read|update|delete].logs` files appear after the provider executes.
+
+```terraform
+  environment = {
+    debug_log        = true
+  }
+```
+
+### Option 2
+
 Set `TF_LOG=debug` then re-run the `terraform apply`. Logs like the following will be visible to show you what has happened when the scripts executed.
 
 For example here is some output when the script path is incorrect:

@@ -50,7 +50,6 @@ resource "shell_script" "cluster" {
     worker_nodes     = 4
     DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
-    wait_for_state   = "PENDING"
     debug_log        = true
   }
 }
