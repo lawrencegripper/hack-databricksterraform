@@ -39,3 +39,5 @@ override.tf.json
 terraform-provider-shell
 clustercreate.json
 clusterupdate.json
+
+cluster.*.log

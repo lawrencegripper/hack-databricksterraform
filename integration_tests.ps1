@@ -47,8 +47,16 @@ Describe "Terraform Deployment" {
         }
 
         It "returns a valid running cluster" {
-            $cluster.values.output.cluster_id | Should -Not -BeNullOrEmpty
-            $response = databricks clusters get --cluster-id $cluster.values.output.cluster_id | ConvertFrom-Json 
+            $cluster.values.output.cluster_id | Should -Not -BeNullOrEmpty -Because "cluster_id should be stored in state"
+
+            # Setup auth for databrickscli
+            $ENV:DATABRICKS_HOST = "https://$($workspace.values.location).azuredatabricks.net"
+            $ENV:DATABRICKS_TOKEN = $patToken.values.output.token_value
+            
+            # Attempt to get the cluster
+            $response = databricks clusters get --cluster-id $cluster.values.output.cluster_id
+            { $response | ConvertFrom-Json } | Should -Not -Throw -Because "Valid json should be returned by the databricks cli"
+
             $response.state | Should -Be "RUNNING"
         }
 
@@ -73,40 +81,40 @@ Describe "Terraform Deployment" {
     }
 }
 
-Describe "Terraform Destroy" { 
-    Context "with existing tfstate" {
-        # Ensure we have an existing terraform deployment
-        "./terraform.tfstate" | Should -Exist
+# Describe "Terraform Destroy" { 
+#     Context "with existing tfstate" {
+#         # Ensure we have an existing terraform deployment
+#         "./terraform.tfstate" | Should -Exist
 
-        # Get state before the `terraform destroy` so we can check 
-        # resources have been removed correctly
-        $tfState = terraform show -json | ConvertFrom-Json
-        $resources = $tfState.values.root_module.resources 
+#         # Get state before the `terraform destroy` so we can check 
+#         # resources have been removed correctly
+#         $tfState = terraform show -json | ConvertFrom-Json
+#         $resources = $tfState.values.root_module.resources 
 
-        #Created Resources
-        $workspace = Get-ResourceState $resources "azurerm_databricks_workspace.example"
-        $patToken = Get-ResourceState $resources "shell_script.pat_token"
-        $cluster = Get-ResourceState $resources "shell_script.cluster"
+#         #Created Resources
+#         $workspace = Get-ResourceState $resources "azurerm_databricks_workspace.example"
+#         $patToken = Get-ResourceState $resources "shell_script.pat_token"
+#         $cluster = Get-ResourceState $resources "shell_script.cluster"
 
-        Write-host "Destroying terraform"
-        terraform destroy -auto-approve
+#         Write-host "Destroying terraform"
+#         terraform destroy -auto-approve
 
-        It "check we captured state for all resources before delete" {
-            $workspace | Should -Not -BeNullOrEmpty
-            $patToken | Should -Not -BeNullOrEmpty
-            $cluster | Should -Not -BeNullOrEmpty
-        }
+#         It "check we captured state for all resources before delete" {
+#             $workspace | Should -Not -BeNullOrEmpty
+#             $patToken | Should -Not -BeNullOrEmpty
+#             $cluster | Should -Not -BeNullOrEmpty
+#         }
 
-        It "returns a missing workspace" {
-            $workspace.values.id | Should -Not -BeNullOrEmpty
-            az resource show --ids $workspace.values.id
-            $LASTEXITCODE | Should -Be 1
-        }
+#         It "returns a missing workspace" {
+#             $workspace.values.id | Should -Not -BeNullOrEmpty
+#             az resource show --ids $workspace.values.id
+#             $LASTEXITCODE | Should -Be 1
+#         }
 
-        It "returns a terminated" {
-            $cluster.values.output.cluster_id | Should -Not -BeNullOrEmpty
-            $response = databricks clusters get --cluster-id $cluster.values.output.cluster_id | ConvertFrom-Json 
-            $response.state | Should -Be "TERMINATED"
-        }
-    }
-}
+#         It "returns a terminated" {
+#             $cluster.values.output.cluster_id | Should -Not -BeNullOrEmpty
+#             $response = databricks clusters get --cluster-id $cluster.values.output.cluster_id | ConvertFrom-Json 
+#             $response.state | Should -Be "TERMINATED"
+#         }
+#     }
+# }

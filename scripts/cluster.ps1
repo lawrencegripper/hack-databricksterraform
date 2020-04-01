@@ -1,5 +1,9 @@
 param([String]$type)
 
+if ($ENV:debug_log) {
+    Start-Transcript -Path "./cluster.$type.log"
+}
+
 # Terraform provider sends in current state
 # as a json object to stdin
 $stdin = $input
@@ -35,10 +39,25 @@ function create {
     # Template the cluster creation json
     Set-Content ./clustercreate.json -Value $clusterDef
     
-    # Create the cluster
-    $createResult = databricks clusters create --json-file ./clustercreate.json
-    Test-ForDatabricksError $createResult
-
+    # Create the cluster. Handle intermittent failures via retry.
+    $createComplete = $false
+    $retryCount = 0
+    while (-not $createComplete) {
+        try {
+            $createResult = databricks clusters create --json-file ./clustercreate.json
+            Test-ForDatabricksError $createResult
+            $createComplete = $true
+        } catch {
+            if ($retryCount -ge 10) {
+                throw
+            } else {
+                Write-Host "Create failed. Retrying after wait..."
+                Start-Sleep -Seconds 10
+            }
+        }
+        $retryCount++
+    }
+    
     # Cleanup temp file
     Remove-Item -Path ./clustercreate.json
     
@@ -137,7 +156,8 @@ function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
 
             $state = $getResult | Convertfrom-json | select-object -expandproperty state
             Write-Host "Checking cluster state. Have: $state Want: $wantedState or $alternativeState. Sleeping for 5secs"
-        } catch {
+        }
+        catch {
             Write-Host "Failed to get $clusterID, retrying..."
         }
         Start-Sleep -Seconds 5    
