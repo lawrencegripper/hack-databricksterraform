@@ -142,12 +142,6 @@ function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
     Write-Host "Found cluster state. Have: $state Want: $wantedState or $alternativeState"
 }
 
-function Get-ClusterByID([string]$id) {
-    $response = 
-    Test-ForDatabricksError $response
-    return $response
-}
-
 function Test-ForDatabricksError($response) {
     # Todo - maybe improve
     # Currently CLI returns `Error: b'{"error_code":"INVALID_PARAMETER_VALUE","message":"Cluster 1 does not exist"}'` on an error, for example

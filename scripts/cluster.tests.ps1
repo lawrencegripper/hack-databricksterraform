@@ -24,7 +24,7 @@ Describe "Get-ClusterIDFromTFState" {
     }
 
     It "returns ID for valid state" {
-        Mock Get-Stdin { return "{ 'cluster_id': 'bob' }" }            
+        Mock Get-Stdin { return "{ 'cluster_id': 'bob' }" }  
         Get-ClusterIDFromTFState | Should -BeExactly "bob"
     }
 }
@@ -71,7 +71,6 @@ Describe "Wait-ForClusterState" {
             $expectedLine2 = "Found cluster state. Have: TERMINATED Want: RUNNING or TERMINATED"
             
             $terminatedCluster = "{ 'state': 'TERMINATED'}"
-            Mock Get-ClusterByID { return $terminatedCluster }
             Mock Invoke-DatabricksCLI { return $terminatedCluster }
 
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING" -alternativeState "TERMINATED"
