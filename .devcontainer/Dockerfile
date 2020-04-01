@@ -90,4 +90,7 @@ RUN apt install -y python3 python3-dev python3-pip python3-setuptools python3-wh
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
+# Install powershell unit testing framework
+RUN pwsh -c "Install-Module -Name Pester -Force"
+
 

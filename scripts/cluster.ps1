@@ -4,6 +4,12 @@ param([String]$type)
 # as a json object to stdin
 $stdin = $input
 
+# Added function for mocking
+function Get-Stdin {
+    return $stdin
+}
+
+
 function create {
     Write-Host "Starting create"
 
@@ -96,33 +102,36 @@ function delete {
 # Read the stdin passed in by provider. This is the JSON formatted current state of the object as known by 
 # terraform. This allows us to get the `cluster_id` property. 
 function Get-ClusterIDFromTFState {
-    $clusterID = $stdin | Convertfrom-json | select-object -expandproperty cluster_id
+    return Get-ClusterIDFromJSON(Get-Stdin)
+}
+
+function Get-ClusterIDFromJSON($json) {
+    $clusterID = $json | Convertfrom-json | select-object -expandproperty cluster_id
     if (!$clusterID) {
-        Write-Error "Failed to get ClusterID from state: $input"
-        exit 1
+        Throw "Failed to get ClusterID from state: $input"
     }
     Write-Host "Found ClusterID from Terraform state: $clusterID"
     return $clusterID
 }
 
-function Get-ClusterIDFromJSON($json) {
-    $clusterID = $json | Convertfrom-json | select-object -expandproperty cluster_id
-    Write-Host "Found ClusterID from JSON: $clusterID"
-    return $clusterID
-}
-
 function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
+    if (!$clusterID) {
+        Throw "Error: Cluster ID empty"
+    }
     # Wait for cluster to be ready
     $state = ""
     do {
-        $getResult = databricks clusters get --cluster-id $clusterID
+        $getResult = Get-ClusterByID $clusterID
         $state = $getResult | Convertfrom-json | select-object -expandproperty state
-        Write-Host "Checking cluster state. Have: $state Want: $wantedState. Sleeping for 15secs"
-        Start-Sleep -Seconds 15
-            
+        Write-Host "Checking cluster state. Have: $state Want: $wantedState or $alternativeState. Sleeping for 5secs"
+        Start-Sleep -Seconds 5    
     } until ($state -eq $wantedState -or $state -eq $alternativeState)
 
-    Write-Host "Found cluster state. Have: $state Want: $wantedState"
+    Write-Host "Found cluster state. Have: $state Want: $wantedState or $alternativeState"
+}
+
+function Get-ClusterByID([string]$id) {
+    return databricks clusters get --cluster-id $clusterID
 }
 
 function Test-ForDatabricksError($response) {
@@ -138,7 +147,6 @@ function Test-ForDatabricksError($response) {
         exit 1
     }
 }
-
 
 Switch ($type) {
     "create" { create }
