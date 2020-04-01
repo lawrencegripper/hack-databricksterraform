@@ -43,7 +43,11 @@ function create {
     Remove-Item -Path ./clustercreate.json
     
     $clusterID = Get-ClusterIDFromJSON $createResult
-    Wait-ForClusterState $clusterID "RUNNING"
+    $waitForState = "RUNNING"
+    if ($ENV:wait_for_state) {
+        $waitForState = $ENV:wait_for_state
+    }
+    Wait-ForClusterState $clusterID $waitForState
 
     # Write json to stdout for provider to pickup and store state in terraform 
     # importantly this allows us to track the `cluster_id` property for future read/update/delete ops

@@ -14,7 +14,7 @@ Creates a:
 
 1. Have `azurecli` installed and logged in, have `python3` and `pip3` installed.
 1. Run `powershell ./install_requirements.ps1`
-1. Run `terraform apply -auto-approve` (run `terraform plan` first if you want to see what will be created)
+1. Run `terraform apply -auto-approve -var 'group_name=yourGroupNameHere'` (run `terraform plan` first if you want to see what will be created)
 1. See cluster created
 
 # Dev 

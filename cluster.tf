@@ -1,10 +1,12 @@
+variable group_name {}
+
 provider "azurerm" {
   version = "~> 2.3"
   features {}
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "test12345"
+  name     = var.group_name
   location = "eastus" # note must be lower without spaces not verbose style
 }
 
@@ -29,7 +31,7 @@ resource "shell_script" "pat_token" {
   environment = {
     pat_token_name  = "tf_pat_token"
     workspace_id    = azurerm_databricks_workspace.example.id
-    DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    DATABRICKS_HOST = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
   }
 }
 
@@ -48,5 +50,6 @@ resource "shell_script" "cluster" {
     worker_nodes     = 4
     DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
+    wait_for_state   = "PENDING"
   }
 }
