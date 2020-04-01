@@ -3,6 +3,20 @@ Set-Location $scriptDir
 
 . ./cluster.ps1
 
+Describe "Test-ForDatabricksError" {
+    It "throws when empty response" {
+        { Test-ForDatabricksError "" } | Should -Throw
+    }
+
+    It "throws when response contains error" {
+        { Test-ForDatabricksError "Error: something failed" } | Should -Throw
+    }
+
+    It "throws when response is invalid json" {
+        { Test-ForDatabricksError "jammydodgers" } | Should -Throw
+    }
+}
+
 Describe "Get-ClusterIDFromTFState" {
     It "returns error when invalid state" {
         Mock Get-Stdin { return "invalidState" }            
@@ -26,8 +40,9 @@ Describe "Get-ClusterIDFromJSON" {
 }
 
 Describe "Wait-ForClusterState" {
-    Context "With mocked Write-host" {
+    Context "With mocked Write-host and start-sleep" {
         Mock Write-host { }
+        Mock Start-Sleep {}
 
     
         It "returns error when invalid clusterID passed" {
@@ -37,8 +52,9 @@ Describe "Wait-ForClusterState" {
         It "returns correctly when in RUNNING state" {
             $expectedLine1 = "Checking cluster state. Have: RUNNING Want: RUNNING or . Sleeping for 5secs"
             $expectedLine2 = "Found cluster state. Have: RUNNING Want: RUNNING or "
+            
             $runningCluster = "{ 'state': 'RUNNING'}"
-            Mock Get-ClusterByID { return $runningCluster }
+            Mock Invoke-DatabricksCLI { return $runningCluster }
 
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING"
 
@@ -53,8 +69,10 @@ Describe "Wait-ForClusterState" {
         It "returns correctly when in TERMINATED state" {
             $expectedLine1 = "Checking cluster state. Have: TERMINATED Want: RUNNING or TERMINATED. Sleeping for 5secs"
             $expectedLine2 = "Found cluster state. Have: TERMINATED Want: RUNNING or TERMINATED"
+            
             $terminatedCluster = "{ 'state': 'TERMINATED'}"
             Mock Get-ClusterByID { return $terminatedCluster }
+            Mock Invoke-DatabricksCLI { return $terminatedCluster }
 
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING" -alternativeState "TERMINATED"
 

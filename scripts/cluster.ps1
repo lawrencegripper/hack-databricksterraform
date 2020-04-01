@@ -4,9 +4,15 @@ param([String]$type)
 # as a json object to stdin
 $stdin = $input
 
-# Added function for mocking
+# Added functions for mocking
+#
+# Stdin
 function Get-Stdin {
     return $stdin
+}
+# DatabricksCLI
+function Invoke-DatabricksCLI($command) {
+    & $command
 }
 
 
@@ -121,7 +127,9 @@ function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
     # Wait for cluster to be ready
     $state = ""
     do {
-        $getResult = Get-ClusterByID $clusterID
+        $getResult = Invoke-DatabricksCLI "databricks clusters get --cluster-id $clusterID"
+        Test-ForDatabricksError $getResult
+
         $state = $getResult | Convertfrom-json | select-object -expandproperty state
         Write-Host "Checking cluster state. Have: $state Want: $wantedState or $alternativeState. Sleeping for 5secs"
         Start-Sleep -Seconds 5    
@@ -131,21 +139,23 @@ function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
 }
 
 function Get-ClusterByID([string]$id) {
-    return databricks clusters get --cluster-id $clusterID
+    $response = 
+    Test-ForDatabricksError $response
+    return $response
 }
 
 function Test-ForDatabricksError($response) {
     # Todo - maybe improve
     # Currently CLI returns `Error: b'{"error_code":"INVALID_PARAMETER_VALUE","message":"Cluster 1 does not exist"}'` on an error, for example
     if (!$response) {
-        Write-Error "Failed to execute Databricks CLI. Null response: $response"
-        exit 1
+        Throw "Failed to execute Databricks CLI. Null response: $response"
     }
 
     if ($response -like "Error: *") {
-        Write-Error "Failed to execute Databricks CLI. Error: $response"
-        exit 1
+        Throw "Failed to execute Databricks CLI. Error: $response"
     }
+
+    $response | ConvertFrom-Json
 }
 
 Switch ($type) {
