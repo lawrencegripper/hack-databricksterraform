@@ -1,0 +1,28 @@
+{
+    "num_workers": null,
+    "autoscale": {
+        "min_workers": 1,
+        "max_workers": 8
+    },
+    "cluster_name": "t1",
+    "spark_version": "latest-stable-scala2.11",
+    "spark_conf": {
+        "spark.databricks.cluster.profile": "serverless",
+        "spark.databricks.repl.allowedLanguages": "python,sql",
+        "spark.databricks.passthrough.enabled": "true",
+        "spark.databricks.pyspark.enableProcessIsolation": "true"
+    },
+    "node_type_id": "Standard_DS13_v2",
+    "ssh_public_keys": [],
+    "custom_tags": {
+        "ResourceClass": "Serverless"
+    },
+    "spark_env_vars": {
+        "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+    },
+    "autotermination_minutes": 0,
+    "enable_elastic_disk": true,
+    "init_scripts": [],
+    "idempotency_token": "asdfasdfasdfasdfa",
+    "start_cluster": true
+}

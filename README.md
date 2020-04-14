@@ -1,8 +1,4 @@
-# Disclaimer
-
-This is a point in time hack and isn't kept up-to-date. It best serves as a guide or sample.
-
-## What does it do?
+# What does it do?
 
 Creates a:
 1. Databricks workspace in Azure
@@ -13,7 +9,7 @@ Creates a:
 # Run 
 
 1. Have `azurecli` installed and logged in, have `python3` and `pip3` installed.
-1. Run `powershell ./install_requirements.ps1`
+1. Run `invoke-psake ./psake.ps1 installRequirements`
 1. Run `terraform apply -auto-approve -var 'group_name=yourGroupNameHere'` (run `terraform plan` first if you want to see what will be created)
 1. See cluster created
 
@@ -23,7 +19,13 @@ The repo includes VSCode devcontainer. Clone and open the code in VSCode and ena
 
 Info: https://code.visualstudio.com/docs/remote/containers
 
+Run `Invoke-psake ./make.ps1 test` for basic unit tests or `Invoke-psake ./make.ps1 integrationTest` for a full integration test run.
+
 # Debug
+
+## Cluster config examples
+
+Under `./examples` are some example cluster configurations for setting up clusters in certain ways.
 
 ## Cleanup
 

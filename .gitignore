@@ -36,8 +36,8 @@ override.tf.json
 
 *private*
 
-terraform-provider-shell
 clustercreate.json
 clusterupdate.json
 
 cluster.*.log
+terraform-provider-*

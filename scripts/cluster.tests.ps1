@@ -19,12 +19,12 @@ Describe "Test-ForDatabricksError" {
 
 Describe "Get-ClusterIDFromTFState" {
     It "returns error when invalid state" {
-        Mock Get-Stdin { return "invalidState" }            
+        $stdin = "invalidState"
         { Get-ClusterIDFromTFState } | Should -Throw 
     }
 
     It "returns ID for valid state" {
-        Mock Get-Stdin { return "{ 'cluster_id': 'bob' }" }  
+        $stdin =  "{ 'cluster_id': 'bob' }"
         Get-ClusterIDFromTFState | Should -BeExactly "bob"
     }
 }

@@ -1,5 +1,9 @@
 param([String]$type)
 
+if ($ENV:debug_log) {
+    Start-Transcript -Path "./pat.$type.log"
+}
+
 # Terraform provider sends in current state
 # as a json object to stdin
 $stdin = $input

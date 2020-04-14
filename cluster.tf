@@ -46,11 +46,22 @@ resource "shell_script" "cluster" {
   working_directory = path.module
 
   environment = {
-    machine_sku      = "Standard_D3_v2"
-    worker_nodes     = 4
     DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
     wait_for_state   = "PENDING"
     debug_log        = true
+    # Enabled passthrough for single user.
+    # `jsonencode(jsondecode(x))` ensures invalid json fails during plan stage
+    # not midway through a deployment -> fail fast and early if you miss a comma. 
+    cluster_json     = jsonencode(jsondecode(<<JSON
+      {
+        "cluster_name": "my-cluster-t1",
+        "spark_version": "6.4.x-scala2.11",
+        "node_type_id": "Standard_D3_v2",
+        "num_workers": "1",
+        "autotermination_minutes": 300
+    }
+JSON
+))
   }
 }

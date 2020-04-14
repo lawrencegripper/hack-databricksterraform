@@ -92,5 +92,6 @@ ENV LANG=C.UTF-8
 
 # Install powershell unit testing framework
 RUN pwsh -c "Install-Module -Name Pester -Force"
+RUN pwsh -c "Install-Module -Name PSake -Force"
 
 

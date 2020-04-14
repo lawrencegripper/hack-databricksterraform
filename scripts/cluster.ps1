@@ -8,12 +8,6 @@ if ($ENV:debug_log) {
 # as a json object to stdin
 $stdin = $input
 
-# Added functions for mocking
-#
-# Stdin
-function Get-Stdin {
-    return $stdin
-}
 # DatabricksCLI
 function Invoke-DatabricksCLI($command) {
     Invoke-Expression $command
@@ -23,18 +17,7 @@ function Invoke-DatabricksCLI($command) {
 function create {
     Write-Host "Starting create"
 
-    $clusterDef = @"
-    {
-        "cluster_name": "my-cluster-t1",
-        "spark_version": "6.4.x-scala2.11",
-        "node_type_id": "$ENV:machine_sku",
-        "spark_conf": {
-          "spark.speculation": true
-        },
-        "num_workers": "$ENV:worker_nodes",
-        "autotermination_minutes": 300
-    }
-"@
+    $clusterDef = $ENV:cluster_json
     
     # Template the cluster creation json
     Set-Content ./clustercreate.json -Value $clusterDef
@@ -47,10 +30,12 @@ function create {
             $createResult = databricks clusters create --json-file ./clustercreate.json
             Test-ForDatabricksError $createResult
             $createComplete = $true
-        } catch {
+        }
+        catch {
             if ($retryCount -ge 10) {
                 throw
-            } else {
+            }
+            else {
                 Write-Host "Create failed. Retrying after wait..."
                 Start-Sleep -Seconds 10
             }
@@ -97,15 +82,12 @@ function update {
     Wait-ForClusterState $clusterID "RUNNING" "TERMINATED"
 
 
-    $json = @"
-    {
-        "cluster_id": "$clusterID",
-        "node_type_id": "$ENV:machine_sku",
-        "num_workers": "$ENV:worker_nodes",
-        "spark_version": "6.4.x-scala2.11",
-        "autotermination_minutes": 300
-    }
-"@
+    $json = $ENV:cluster_json
+
+    # Add cluster_id property required for edits
+    $clusterDef = $json | ConvertFrom-Json
+    $clusterDef | add-member -NotepropertyName "cluster_id" -NotePropertyValue $clusterID
+    $json = $clusterDef | ConvertTo-Json
 
     Set-Content ./clusterupdate.json -Value $json
 
@@ -133,7 +115,7 @@ function delete {
 # Read the stdin passed in by provider. This is the JSON formatted current state of the object as known by 
 # terraform. This allows us to get the `cluster_id` property. 
 function Get-ClusterIDFromTFState {
-    return Get-ClusterIDFromJSON(Get-Stdin)
+    return Get-ClusterIDFromJSON($stdin)
 }
 
 function Get-ClusterIDFromJSON($json) {
@@ -174,13 +156,19 @@ function Test-ForDatabricksError($response) {
     if (!$response) {
         Throw "Failed to execute Databricks CLI. Null response: $response"
     }
-
+    
     if ($response -like "Error: *") {
-        Throw "Failed to execute Databricks CLI. Error: $response"
+        Write-Host "CLI Response: $response"
+        Throw "Failed to execute Databricks CLI. Error response."
     }
 
-    # Check the response is valid JSON
-    $response | ConvertFrom-Json
+    try {
+        $response | ConvertFrom-Json
+    }
+    catch {
+        Write-Host "Failed to execute Databricks CLI. Invalid Json response. CLI Response: $response"
+        Throw 
+    }
 }
 
 Switch ($type) {

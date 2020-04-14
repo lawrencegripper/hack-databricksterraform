@@ -1,5 +1,5 @@
 $scriptDir = Split-Path -parent $PSCommandPath
-Set-Location $scriptDir
+Set-Location "$scriptDir/../"
 
 function Get-ResourceState($resources, $address) {
     return $resources | Where-Object { $_.address -eq $address }
@@ -9,6 +9,9 @@ Describe "Terraform Deployment" {
     Context "with clean tfstate" {
         # Remove state so no resources current tracked by tf
         Remove-Item ./terraform.tfstate -Force
+
+        # Initilize terraform
+        terraform init
 
         # Set variables for Terraform
         $randomGroupNum = Get-Random
