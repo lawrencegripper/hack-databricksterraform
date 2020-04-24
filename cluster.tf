@@ -55,6 +55,17 @@ resource "azuread_service_principal" "datalake" {
   app_role_assignment_required = false
 }
 
+resource "random_string" "pw" {
+  length = 24
+}
+
+resource "azuread_service_principal_password" "datalake" {
+  service_principal_id = azuread_service_principal.datalake.id
+  value                = random_string.pw.result
+  # Review best way forward with this setting
+  end_date = "2050-01-01T01:02:03Z"
+}
+
 resource "azurerm_role_assignment" "datalake" {
   scope = azurerm_storage_account.account.id
   #https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor
@@ -129,7 +140,7 @@ resource "shell_script" "secret_scope" {
   }
 }
 
-resource "shell_script" "secret" {
+resource "shell_script" "secret_sp_applicationid" {
   lifecycle_commands {
     create = "pwsh ${path.module}/scripts/secret.ps1 -type create"
     read   = "pwsh ${path.module}/scripts/secret.ps1 -type read"
@@ -141,8 +152,60 @@ resource "shell_script" "secret" {
     DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
     secret_scope_name = shell_script.secret_scope.output["name"]
-    secret_name       = "rick"
-    secret_value      = "morty"
+    secret_name       = "datalake_sp_applicationid"
+    secret_value      = azuread_application.datalake.application_id
     debug_log         = true
   }
 }
+
+
+resource "shell_script" "secret_app_client_secret" {
+  lifecycle_commands {
+    create = "pwsh ${path.module}/scripts/secret.ps1 -type create"
+    read   = "pwsh ${path.module}/scripts/secret.ps1 -type read"
+    update = "pwsh ${path.module}/scripts/secret.ps1 -type update"
+    delete = "pwsh ${path.module}/scripts/secret.ps1 -type delete"
+  }
+
+  environment = {
+    DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
+    secret_scope_name = shell_script.secret_scope.output["name"]
+    secret_name       = "datalake_sp_app_client_secret"
+    secret_value      = random_string.pw.result
+    debug_log         = true
+  }
+
+  depends_on = [
+    azuread_service_principal_password.datalake
+  ]
+}
+
+data "azuread_client_config" "current" {
+}
+
+resource "shell_script" "secret_app_tenant" {
+  lifecycle_commands {
+    create = "pwsh ${path.module}/scripts/secret.ps1 -type create"
+    read   = "pwsh ${path.module}/scripts/secret.ps1 -type read"
+    update = "pwsh ${path.module}/scripts/secret.ps1 -type update"
+    delete = "pwsh ${path.module}/scripts/secret.ps1 -type delete"
+  }
+
+  environment = {
+    DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
+    secret_scope_name = shell_script.secret_scope.output["name"]
+    secret_name       = "datalake_sp_tenant"
+    secret_value      = azuread_client_config.current.tenant_id
+    debug_log         = true
+  }
+
+  depends_on = [
+    azuread_service_principal_password.datalake
+  ]
+}
+
+
+
+
