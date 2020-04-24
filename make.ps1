@@ -11,3 +11,12 @@ task "integrationTest" -depends "InstallRequirements" -Description "Create real 
 task "installRequirements" {
     & ./scripts/install_requirements.ps1
 }
+
+task "clean" {
+    Get-Item "*.*.log" | Remove-Item
+}
+
+task "debugSecret" -depends "clean" {
+    terraform state rm shell_script.secret
+    terraform apply -auto-approve -var group_name=test1
+}

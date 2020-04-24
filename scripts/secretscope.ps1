@@ -20,6 +20,11 @@ $headers = @{
     "Authorization" = "Bearer $patToken"
 }
 
+function Get-CurrentName {
+    $currentState = $stdin | ConvertFrom-Json
+    return $currentState.name
+}
+
 function create {
     Write-Host "Starting create"
     
@@ -48,16 +53,16 @@ function create {
 function read {
     Write-Host "Starting read"
 
-
-    $response = Invoke-WebRequest $databricksWorkspaceEndpoint/api/2.0/secrets/scopes/list `
+    $response = Invoke-WebRequest "$databricksWorkspaceEndpoint/api/2.0/secrets/scopes/list" `
         -Headers $headers `
         -Method 'GET' `
         -ContentType 'application/json; charset=utf-8'
 
     $scopes = $response.Content | ConvertFrom-JSON | select-object -expandProperty scopes
 
+    $currentName = Get-CurrentName
     foreach ($scope in $scopes) {
-        if ($scope.name -eq $scopeName) {
+        if ($scope.name -eq $currentName) {
             $json = $scope | ConvertTo-Json
             Write-Host "Found scope:"
             Write-Host $json
@@ -77,12 +82,13 @@ function update {
 function delete {
     Write-Host "Starting delete"
 
+    $currentName = Get-CurrentName
 
     $response = Invoke-WebRequest $databricksWorkspaceEndpoint/api/2.0/secrets/scopes/delete `
         -Headers $headers `
         -Method 'POST' `
         -ContentType 'application/json; charset=utf-8' `
-        -Body "{`"scope`": `"$scopeName`"}"
+        -Body "{`"scope`": `"$currentName`"}"
 
     test-response $response
 }

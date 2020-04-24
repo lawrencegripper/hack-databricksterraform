@@ -41,5 +41,6 @@ clusterupdate.json
 
 cluster.*.log
 secretscope.*.log
+secret.*.log
 terraform-provider-*
 hacks/*

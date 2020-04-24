@@ -56,9 +56,9 @@ resource "azuread_service_principal" "datalake" {
 }
 
 resource "azurerm_role_assignment" "datalake" {
-  scope                = azurerm_storage_account.account.id
+  scope = azurerm_storage_account.account.id
   #https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor
-  role_definition_name = "Storage Blob Data Contributor" 
+  role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azuread_service_principal.datalake.id
 }
 
@@ -126,5 +126,23 @@ resource "shell_script" "secret_scope" {
     secret_scope_name        = "terraform"
     initial_manage_principal = "users"
     debug_log                = true
+  }
+}
+
+resource "shell_script" "secret" {
+  lifecycle_commands {
+    create = "pwsh ${path.module}/scripts/secret.ps1 -type create"
+    read   = "pwsh ${path.module}/scripts/secret.ps1 -type read"
+    update = "pwsh ${path.module}/scripts/secret.ps1 -type update"
+    delete = "pwsh ${path.module}/scripts/secret.ps1 -type delete"
+  }
+
+  environment = {
+    DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
+    secret_scope_name = shell_script.secret_scope.output["name"]
+    secret_name       = "rick"
+    secret_value      = "morty"
+    debug_log         = true
   }
 }
