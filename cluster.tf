@@ -171,7 +171,7 @@ resource "shell_script" "secret_app_client_secret" {
     DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
     secret_scope_name = shell_script.secret_scope.output["name"]
-    secret_name       = "datalake_sp_app_client_secret"
+    secret_name       = "datalake_sp_client_secret"
     secret_value      = random_string.pw.result
     debug_log         = true
   }
@@ -197,7 +197,7 @@ resource "shell_script" "secret_app_tenant" {
     DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
     secret_scope_name = shell_script.secret_scope.output["name"]
     secret_name       = "datalake_sp_tenant"
-    secret_value      = azuread_client_config.current.tenant_id
+    secret_value      = data.azuread_client_config.current.tenant_id
     debug_log         = true
   }
 
@@ -205,7 +205,4 @@ resource "shell_script" "secret_app_tenant" {
     azuread_service_principal_password.datalake
   ]
 }
-
-
-
 
