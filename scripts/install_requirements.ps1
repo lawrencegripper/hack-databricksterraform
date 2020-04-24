@@ -1,10 +1,3 @@
-function Expand-Tar($tarFile, $dest) {
-    if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-        Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
-    }
-
-    Expand-7Zip $tarFile $dest
-}
 
 # Skip if installed already
 if ((Get-Command "databricks" -errorAction SilentlyContinue) -and ((Test-Path -Path "./terraform-provider-shell" -errorAction SilentlyContinue))) {
@@ -12,39 +5,40 @@ if ((Get-Command "databricks" -errorAction SilentlyContinue) -and ((Test-Path -P
     exit 0
 }
 
-$os = "windows"
+$fileEx = ""
 if ($PSVersionTable.PSVersion -gt [Version]'6.1.0.0') {
     if ($IsLinux) {
-        $os = "linux"
+        $fileEx = "_linux_amd64.zip"
     }
     
     if ($IsWindows) {
-        $os = "windows"
+        $fileEx = ".exe_windows_amd64.zip"
     }
 
     if ($IsMacOS) {
-        $os = "darwin"
+        $fileEx = "-darwin_amd64.zip"
     }
 }
 
-write-host "Downloading shell provider for $os"
+write-host "Downloading shell provider $fileEx"
 
-$downloadUrl = "https://github.com/scottwinkler/terraform-provider-shell/releases/download/v1.2.0/terraform-provider-shell_v1.2.0_$($os)_amd64.tar.gz"
+$downloadUrl = "https://github.com/scottwinkler/terraform-provider-shell/releases/download/v1.3.1/terraform-provider-shell_v1.3.1$($fileEx)"
 
-Invoke-WebRequest -Uri $downloadUrl -OutFile "./terraform-provider-shell.tar.gz"
+Write-Host $downloadUrl
+
+
+Invoke-WebRequest -Uri $downloadUrl -OutFile "terraform-provider-shell.zip"
 
 if ($IsLinux -or $IsMacOS) {
-    tar -xvzf ./terraform-provider-shell.tar.gz
-    chmod +x "./terraform-provider-shell"
+    unzip terraform-provider-shell.zip
+    chmod +x "terraform-provider-shell_v1.3.1"
     mkdir -p ~/.terraform.d/plugins
-    cp ./terraform-provider-shell ~/.terraform.d/plugins
+    cp ./terraform-provider-shell_v1.3.1 ~/.terraform.d/plugins
 } else {
-    Write-Warning "Untested codepath, only checked in Linux devcontainer may not work on Windows"
-    Expand-Tar ./terraform-provider-shell.tar.gz .
-    mkdir %APPDATA%\terraform.d\plugins
-    cp .\terraform-provider-shell.exe %APPDATA%\terraform.d\plugins
+    Expand-Archive .\terraform-provider-shell.zip
+    New-Item $env:APPDATA\terraform.d\plugins -ItemType Directory -ErrorAction SilentlyContinue
+    copy terraform-provider-shell\terraform-provider-shell_v1.3.1.exe $env:APPDATA\terraform.d\plugins
 }
-
 
 
 write-host "Installing databricks cli"
