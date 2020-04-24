@@ -5,6 +5,20 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {
+  version = "~> 0.8"
+}
+
+provider "random" {
+  version = "~> 2.2"
+}
+
+resource "random_string" "name_prefix" {
+  special = false
+  upper   = false
+  length  = 6
+}
+
 resource "azurerm_resource_group" "example" {
   name     = var.group_name
   location = "eastus" # note must be lower without spaces not verbose style
@@ -17,7 +31,38 @@ resource "azurerm_databricks_workspace" "example" {
   sku                 = "standard"
 }
 
+# Configure Datalake and SP for access
+resource "azurerm_storage_account" "account" {
+  name                     = "${random_string.name_prefix.result}datalake"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+  account_kind             = "StorageV2"
+  is_hns_enabled           = "true"
+}
 
+resource "azuread_application" "datalake" {
+  name                       = "${random_string.name_prefix.result}datalake"
+  identifier_uris            = ["http://${random_string.name_prefix.result}datalake"]
+  available_to_other_tenants = false
+  oauth2_allow_implicit_flow = true
+
+}
+
+resource "azuread_service_principal" "datalake" {
+  application_id               = azuread_application.datalake.application_id
+  app_role_assignment_required = false
+}
+
+resource "azurerm_role_assignment" "datalake" {
+  scope                = azurerm_storage_account.account.id
+  #https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor
+  role_definition_name = "Storage Blob Data Contributor" 
+  principal_id         = azuread_service_principal.datalake.id
+}
+
+# Create cluster
 resource "shell_script" "pat_token" {
   lifecycle_commands {
     create = "pwsh ${path.module}/scripts/pat.ps1 -type create"
@@ -53,7 +98,7 @@ resource "shell_script" "cluster" {
     # Enabled passthrough for single user.
     # `jsonencode(jsondecode(x))` ensures invalid json fails during plan stage
     # not midway through a deployment -> fail fast and early if you miss a comma. 
-    cluster_json     = jsonencode(jsondecode(<<JSON
+    cluster_json = jsonencode(jsondecode(<<JSON
       {
         "cluster_name": "my-cluster-t1",
         "spark_version": "6.4.x-scala2.11",
@@ -62,6 +107,24 @@ resource "shell_script" "cluster" {
         "autotermination_minutes": 300
     }
 JSON
-))
+    ))
+  }
+}
+
+
+resource "shell_script" "secret_scope" {
+  lifecycle_commands {
+    create = "pwsh ${path.module}/scripts/secretscope.ps1 -type create"
+    read   = "pwsh ${path.module}/scripts/secretscope.ps1 -type read"
+    update = "pwsh ${path.module}/scripts/secretscope.ps1 -type update"
+    delete = "pwsh ${path.module}/scripts/secretscope.ps1 -type delete"
+  }
+
+  environment = {
+    DATABRICKS_HOST          = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    DATABRICKS_TOKEN         = shell_script.pat_token.output["token_value"]
+    secret_scope_name        = "terraform"
+    initial_manage_principal = "users"
+    debug_log                = true
   }
 }

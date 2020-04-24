@@ -40,4 +40,6 @@ clustercreate.json
 clusterupdate.json
 
 cluster.*.log
+secretscope.*.log
 terraform-provider-*
+hacks/*
