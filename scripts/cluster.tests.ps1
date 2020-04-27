@@ -1,5 +1,9 @@
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification='Used by the code under test')]
+param()
+
 $scriptDir = Split-Path -parent $PSCommandPath
 Set-Location $scriptDir
+
 
 . ./cluster.ps1
 
@@ -19,13 +23,11 @@ Describe "Test-ForDatabricksError" {
 
 Describe "Get-ClusterIDFromTFState" {
     It "returns error when invalid state" {
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification='Used by the code under test')]
         $stdin = "invalidState"
         { Get-ClusterIDFromTFState } | Should -Throw 
     }
 
     It "returns ID for valid state" {
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification='Used by the code under test')]
         $stdin = "{ 'cluster_id': 'bob' }"
         Get-ClusterIDFromTFState | Should -BeExactly "bob"
     }

@@ -9,8 +9,11 @@ if ($ENV:debug_log) {
 $stdin = $input
 
 # DatabricksCLI
-function Invoke-DatabricksCLI($command) {
-    & $command
+function Invoke-DatabricksCLI {
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Scope='Function', Justification='Todo revisit this and find alternative')]
+    param($command)
+
+    Invoke-Expression $command
 }
 
 
