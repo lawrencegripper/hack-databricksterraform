@@ -25,6 +25,7 @@ jobs:
     # Runs a set of commands using the runners shell
     - name: Install Powershell Core and PSake
       run: |
+        sudo su
         echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-$(lsb_release -cs)-prod $(lsb_release -cs) main" > /etc/apt/sources.list.d/microsoft.list
         apt-get update
         apt-get install -y powershell
@@ -34,4 +35,5 @@ jobs:
     # Runs CI
     - name: Install Powershell Core and PSake
       run: |
+        sudo su
         pwsh -c "Invoke-Psake ./make.ps1 ci"
