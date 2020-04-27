@@ -27,22 +27,22 @@ task "fixup" {
 }
 
 task "checks" -depends "installRequirements", "clean" {
-    write-output ">> Powershell Script Analyzer"
+    Write-Information  ">> Powershell Script Analyzer"
     Invoke-ScriptAnalyzer -Path ./scripts -Recurse -Settings PSGallery -EnableExit
 
-    write-output ">> Terraform verion"
+    Write-Information  ">> Terraform verion"
     terraform -version 
 
-    write-output ">> Terraform Format (if this fails use 'terraform fmt' command to resolve"
+    Write-Information  ">> Terraform Format (if this fails use 'terraform fmt' command to resolve"
     terraform fmt -recursive -diff -check
 
-    write-output ">> tflint"
+    Write-Information  ">> tflint"
     tflint
 
-    write-output ">> Terraform init"
+    Write-Information  ">> Terraform init"
     terraform init
 
-    write-output ">> Terraform validate"
+    Write-Information  ">> Terraform validate"
     terraform validate
 }
 

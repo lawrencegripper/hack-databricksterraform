@@ -44,16 +44,16 @@ Describe "Get-ClusterIDFromJSON" {
 }
 
 Describe "Wait-ForClusterState" {
-    Context "With mocked write-output and start-sleep" {
-        Mock write-output { }
+    Context "With mocked Write-Information  and start-sleep" {
         Mock Start-Sleep { }
-
-    
+        
+        
         It "returns error when invalid clusterID passed" {
             { Wait-ForClusterState "" "pending" } | Should -Throw 
         }
-
+        
         It "returns correctly when in RUNNING state" {
+            Mock Write-Information  { }
             $expectedLine1 = "Checking cluster state. Have: RUNNING Want: RUNNING or . Sleeping for 5secs"
             $expectedLine2 = "Found cluster state. Have: RUNNING Want: RUNNING or "
             
@@ -63,14 +63,17 @@ Describe "Wait-ForClusterState" {
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING"
 
             Assert-MockCalled `
-                -CommandName write-output `
+                -CommandName Write-Information  `
                 -Times 2 `
+                -Verbose `
                 -ParameterFilter { 
-                $Object -eq $expectedLine1 -or $Object -eq $expectedLine2 
+                $Message -eq $expectedLine1 -or $Message -eq $expectedLine2 
             } 
         }
 
         It "returns correctly when in TERMINATED state" {
+            Mock Write-Information  { }
+
             $expectedLine1 = "Checking cluster state. Have: TERMINATED Want: RUNNING or TERMINATED. Sleeping for 5secs"
             $expectedLine2 = "Found cluster state. Have: TERMINATED Want: RUNNING or TERMINATED"
             
@@ -80,10 +83,10 @@ Describe "Wait-ForClusterState" {
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING" -alternativeState "TERMINATED"
 
             Assert-MockCalled `
-                -CommandName write-output `
+                -CommandName Write-Information  `
                 -Times 2 `
                 -ParameterFilter { 
-                $Object -eq $expectedLine1 -or $Object -eq $expectedLine2 
+                $Message -eq $expectedLine1 -or $Message -eq $expectedLine2 
             } 
         }
     }

@@ -17,15 +17,15 @@ Describe "Terraform Deployment" {
         $randomGroupNum = Get-Random
         $ENV:TF_VAR_group_name = "inttest$randomGroupNum"
 
-        write-output "Using ResourceGroup: $ENV:TF_VAR_group_name"
+        Write-Information  "Using ResourceGroup: $ENV:TF_VAR_group_name"
 
         # Run terraform
-        write-output "Applying terraform from scratch"
+        Write-Information  "Applying terraform from scratch"
         $tfOutput = terraform apply -auto-approve
-        write-output $tfOutput
+        Write-Information  $tfOutput
         $LASTEXITCODE | Should -Be 0
 
-        write-output "terraform apply completed"
+        Write-Information  "terraform apply completed"
     
         # Get state after `terraform apply`
         $tfState = terraform show -json | ConvertFrom-Json
@@ -76,12 +76,12 @@ Describe "Terraform Deployment" {
             # https://www.terraform.io/docs/commands/plan.html#detailed-exitcode
             #
             # If this test fails it shows an issue with the `read` command returning different data between calls.
-            write-output "Running terraform plan"
+            Write-Information  "Running terraform plan"
 
             terraform plan -out plan.tfstate -detailed-exitcode
             
             if ($LASTEXITCODE -ne 0) {
-                write-output "Detected terraform changes:"
+                Write-Information  "Detected terraform changes:"
                 terraform show plan.tfstate
             }
 
@@ -113,11 +113,11 @@ Describe "Terraform Destroy" {
         }
 
         It "destroy the cluster and check it's terminated" {
-            write-output "Destroying terraform"
+            Write-Information  "Destroying terraform"
             $tfOutput = terraform destroy -var group_name=$resourceGroup.values.name -auto-approve -target='shell_script.cluster'
             $LASTEXITCODE | Should -Be 0
 
-            write-output $tfOutput
+            Write-Information  $tfOutput
 
             $cluster.values.output.cluster_id | Should -Not -BeNullOrEmpty
             

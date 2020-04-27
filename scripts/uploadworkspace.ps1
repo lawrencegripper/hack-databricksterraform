@@ -17,7 +17,7 @@ function Test-UploadFolder($path) {
 
 
 function create {
-    write-output "Starting create"
+    Write-Information  "Starting create"
 
     # Create a list of what we uploaded to track in state 
     $items = Get-ChildItem $uploadFolder | Select-Object -ExpandProperty Name
@@ -30,11 +30,11 @@ function create {
     # importantly this allows us to track the `cluster_id` property for future read/update/delete ops
     $itemsState = @{ files = $items } | ConvertTo-Json
     
-    write-output $itemsState
+    Write-Information  $itemsState
 }
 
 function read {
-    write-output "Starting read"
+    Write-Information  "Starting read"
 
     # Get the current status of the cluster
     $itemsInClusterRaw = databricks workspace ls /Shared/$uploadDest
@@ -43,11 +43,11 @@ function read {
     $itemsInCluster = $itemsInClusterRaw.Split([Environment]::NewLine)
     
     # Output just the cluster ID to workaround an issue with complex objects https://github.com/scottwinkler/terraform-provider-shell/issues/32
-    @{ files = $itemsInCluster } | ConvertTo-Json | write-output
+    @{ files = $itemsInCluster } | ConvertTo-Json | Write-Information 
 }
 
 function update {
-    write-output "Starting update"
+    Write-Information  "Starting update"
     # WARNING: This will remove everything in the dest including the folder
     # and reupload all files. In future this can be updated to be more targetted
     delete
@@ -55,7 +55,7 @@ function update {
 }
 
 function delete {
-    write-output "Starting delete"
+    Write-Information  "Starting delete"
 
 
     #WARNING: This will remove the whole destination folder!
@@ -65,7 +65,7 @@ function delete {
     Test-ForDatabricksFSError $itemsInClusterRaw
     
     # Empty state update
-    write-output "{}"
+    Write-Information  "{}"
 }
 
 function Test-ForDatabricksFSError($response) {
@@ -74,7 +74,7 @@ function Test-ForDatabricksFSError($response) {
     # - Error: The local file ./doesntexist does not exist.
     # - Error: b'{"error_code":"RESOURCE_ALREADY_EXISTS","message":"A file or directory already exists at the input path dbfs:/doesntexist/really/sure."}'
     if ($response -like "Error: *") {
-        write-output "CLI Response: $response"
+        Write-Information  "CLI Response: $response"
         Throw "Failed to execute Databricks CLI. Error response."
     }
 }

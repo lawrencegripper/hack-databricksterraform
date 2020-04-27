@@ -20,11 +20,11 @@ if ($PSVersionTable.PSVersion -gt [Version]'6.1.0.0') {
     }
 }
 
-write-output "Downloading shell provider $fileEx"
+Write-Information  "Downloading shell provider $fileEx"
 
 $downloadUrl = "https://github.com/scottwinkler/terraform-provider-shell/releases/download/v1.3.1/terraform-provider-shell_v1.3.1$($fileEx)"
 
-write-output $downloadUrl
+Write-Information  $downloadUrl
 
 
 Invoke-WebRequest -Uri $downloadUrl -OutFile "terraform-provider-shell.zip"
@@ -42,6 +42,6 @@ else {
 }
 
 
-write-output "Installing databricks cli"
+Write-Information  "Installing databricks cli"
 
 pip3 install databricks-cli==0.9.1

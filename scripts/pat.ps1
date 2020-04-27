@@ -25,7 +25,7 @@ $patTokenName = $env:pat_token_name
 $databricksWorkspaceID = $env:workspace_id
 
 function create {
-    write-output "Starting create"
+    Write-Information  "Starting create"
 
     $headers = get-AuthHeaders
     # Generate a PAT token. Note the quota limit of 600 tokens.
@@ -40,7 +40,7 @@ function create {
     # Write out the token information to be stored in the Terraform state
     $token = $response.Content | ConvertFrom-Json
 
-    write-output @"
+    Write-Information  @"
     {
         "token_id": "$($token.token_info.token_id)",
         "token_value": "$($token.token_value)"
@@ -49,7 +49,7 @@ function create {
 }
 
 function read {
-    write-output "Starting read"
+    Write-Information  "Starting read"
 
     $currentToken = $stdin | ConvertFrom-Json
     $tokenID = $currentToken.token_id
@@ -68,7 +68,7 @@ function read {
             # as this contains the `token_value` where as the `list` endpoint doesn't
             # return this data
             $json = $currentToken | ConvertTo-Json
-            write-output $json
+            Write-Information  $json
             return
         }
     }
@@ -78,13 +78,13 @@ function read {
 }
 
 function update {
-    write-output "Starting update (calls delete then create)"
+    Write-Information  "Starting update (calls delete then create)"
     delete
     create
 }
 
 function delete {
-    write-output "Starting delete"
+    Write-Information  "Starting delete"
 
 
     $currentToken = $stdin | ConvertFrom-Json
