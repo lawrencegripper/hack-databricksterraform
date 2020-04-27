@@ -94,4 +94,5 @@ ENV LANG=C.UTF-8
 RUN pwsh -c "Install-Module -Name Pester -Force"
 RUN pwsh -c "Install-Module -Name PSake -Force"
 
-
+# Install jupyter for notebook tooling
+RUN pip3 install jupyter
