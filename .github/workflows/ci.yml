@@ -43,6 +43,6 @@ jobs:
         sudo pwsh -c "Install-Module -Name PSake -Force"
 
     # Runs CI
-    - name: Install Powershell Core and PSake
+    - name: Run CI target from Psake
       run: |
         sudo pwsh -c 'Invoke-Psake ./make.ps1 ci; exit (!$psake.build_success)'

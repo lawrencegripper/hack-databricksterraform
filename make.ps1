@@ -49,5 +49,4 @@ task "checks" -depends "installRequirements", "clean" {
 task "ci" {
     exec { & docker build -f ./.devcontainer/Dockerfile ./.devcontainer -t localdevcontainer:latest }
     exec { & docker run -v ${PWD}:${PWD} -v /var/run/docker.sock:/var/run/docker.sock --workdir "${PWD}" --entrypoint /bin/bash -t localdevcontainer:latest -c "pwsh -c 'Invoke-psake ./make.ps1; exit (!`$psake.build_success)'" }
-
 }
