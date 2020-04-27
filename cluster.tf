@@ -260,8 +260,12 @@ JSON
     ))
   }
 
+  # Needs the assets uploaded and secrets created before it can run
   depends_on = [
-    shell_script.upload_assets
+    shell_script.upload_assets,
+    shell_script.secret_app_client_secret,
+    shell_script.secret_sp_applicationid,
+    shell_script.secret_app_tenant
   ]
 }
 

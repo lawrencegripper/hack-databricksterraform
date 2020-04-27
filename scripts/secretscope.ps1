@@ -45,7 +45,7 @@ function create {
 
     Write-host @"
     {
-        "name": "$scopeName",
+        "name": "$scopeName"
     }
 "@
 }
@@ -61,6 +61,10 @@ function read {
     $scopes = $response.Content | ConvertFrom-JSON | select-object -expandProperty scopes
 
     $currentName = Get-CurrentName
+    if (-not $currentName) {
+        throw "Current name is empty in state"
+    }
+
     foreach ($scope in $scopes) {
         if ($scope.name -eq $currentName) {
             $json = $scope | ConvertTo-Json
@@ -70,7 +74,7 @@ function read {
         }
     }
 
-    Write-Error "'$name' not found in workspace!"
+    Write-Error "'$currentName' not found in workspace!"
 }
 
 function update {
