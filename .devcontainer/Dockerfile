@@ -96,3 +96,5 @@ RUN pwsh -c "Install-Module -Name PSake -Force"
 
 # Install jupyter for notebook tooling
 RUN pip3 install jupyter
+
+RUN curl -L "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep -o -E "https://.+?_linux_amd64.zip")" -o tflint.zip && unzip tflint.zip && rm tflint.zip
