@@ -49,11 +49,6 @@ task "checks" -depends "installRequirements", "clean" {
 task "ci" {
     docker build -f ./.devcontainer/Dockerfile ./.devcontainer -t localdevcontainer:latest
 
-    docker run `
-        -v ${PWD}:${PWD} `
-        -v /var/run/docker.sock:/var/run/docker.sock `
-        --entrypoint /bin/bash `
-        -t localdevcontainer:latest
-        -c "pwsh -c 'Invoke-psake ./make.ps1 ci'"
+    docker run -v ${PWD}:${PWD} -v /var/run/docker.sock:/var/run/docker.sock --workdir "${PWD}" --entrypoint /bin/bash -t localdevcontainer:latest -c "pwsh -c 'Invoke-psake ./make.ps1 ci'"
 
 }
