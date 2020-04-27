@@ -4,17 +4,8 @@ if ($ENV:debug_log) {
     Start-Transcript -Path "./upload.workspace.$type.log"
 }
 
-# Terraform provider sends in current state
-# as a json object to stdin
-$stdin = $input
-
 $uploadFolder = $env:upload_folder
 $uploadDest = $env:upload_dest
-
-# DatabricksCLI
-function Invoke-DatabricksCLI($command) {
-    Invoke-Expression $command
-}
 
 function Test-UploadFolder($path) {
     if (Test-Path $path -PathType Container) {

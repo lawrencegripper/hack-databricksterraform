@@ -51,7 +51,7 @@ function create {
     if ($ENV:wait_for_state) {
         $waitForState = $ENV:wait_for_state
     }
-    Wait-ForClusterState $clusterID $waitForState
+    Wait-ForClusterState -clusterID $clusterID -wantedState $waitForState
 
     # Write json to stdout for provider to pickup and store state in terraform 
     # importantly this allows us to track the `cluster_id` property for future read/update/delete ops
@@ -79,7 +79,7 @@ function update {
     $clusterID = Get-ClusterIDFromTFState
     # Only allow edit on running/terminated clusters
     # https://docs.databricks.com/dev-tools/api/latest/clusters.html#edit
-    Wait-ForClusterState $clusterID "RUNNING" "TERMINATED"
+    Wait-ForClusterState -clusterID $clusterID -wantedState "RUNNING" -alternativeState "TERMINATED"
 
 
     $json = $ENV:cluster_json
@@ -95,7 +95,7 @@ function update {
     Test-ForDatabricksError $updateResult
     write-output $updateResult
 
-    Wait-ForClusterState $clusterDef "RUNNING"
+    Wait-ForClusterState -clusterID $clusterDef -wantedState "RUNNING"
 }
 
 function delete {
@@ -109,7 +109,7 @@ function delete {
     
     write-output "Cluster deleted"
 
-    Wait-ForClusterState $clusterDef "TERMINATED"
+    Wait-ForClusterState -clusterID $clusterDef -wantedState "TERMINATED"
 }
 
 # Read the stdin passed in by provider. This is the JSON formatted current state of the object as known by 

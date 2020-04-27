@@ -43,6 +43,7 @@ function create {
     # A read on the API returns different data which we need to track in state
     # such as the last updated time. 
     # https://docs.databricks.com/dev-tools/api/latest/secrets.html#list-secrets
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification='Used by read func')]
     $stdin = $response
     
     read 

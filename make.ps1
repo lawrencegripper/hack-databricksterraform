@@ -21,20 +21,28 @@ task "debugSecret" -depends "clean" {
     terraform apply -auto-approve -var group_name=test1
 }
 
+task "fixup" {
+    terraform fmt -recursive
+    Invoke-ScriptAnalyzer -Path ./scripts -Recurse -Settings PSGallery -Fix 
+}
+
 task "checks" -depends "installRequirements", "clean" {
-    Write-Host ">> Terraform verion"
+    write-output ">> Powershell Script Analyzer"
+    Invoke-ScriptAnalyzer -Path ./scripts -Recurse -Settings PSGallery -EnableExit
+
+    write-output ">> Terraform verion"
     terraform -version 
 
-    Write-Host ">> Terraform Format (if this fails use 'terraform fmt' command to resolve"
+    write-output ">> Terraform Format (if this fails use 'terraform fmt' command to resolve"
     terraform fmt -recursive -diff -check
 
-    Write-Host ">> tflint"
+    write-output ">> tflint"
     tflint
 
-    Write-Host ">> Terraform init"
+    write-output ">> Terraform init"
     terraform init
 
-    Write-Host ">> Terraform validate"
+    write-output ">> Terraform validate"
     terraform validate
 }
 
