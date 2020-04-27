@@ -73,7 +73,7 @@ function read {
         }
     }
 
-    Write-Error "Error tokenID '$tokenID' now found in workspace!"
+    Write-Error "Error tokenID '$tokenID' not found in workspace!"
     exit 1
 }
 
