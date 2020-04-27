@@ -224,4 +224,33 @@ resource "shell_script" "upload_assets" {
   }
 }
 
+resource "shell_script" "mount_job" {
+  lifecycle_commands {
+    create = "pwsh ${path.module}/scripts/runs.ps1 -type create"
+    read   = "pwsh ${path.module}/scripts/runs.ps1 -type read"
+    update = "pwsh ${path.module}/scripts/runs.ps1 -type update"
+    delete = "pwsh ${path.module}/scripts/runs.ps1 -type delete"
+  }
+
+  environment = {
+    DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
+    debug_log        = true
+
+    run_json = jsonencode(jsondecode(<<JSON
+      {
+        "run_name": "mountjob",
+        "existing_cluster_id": "${shell_script.cluster.output["cluster_id"]}",
+        "notebook_params": {
+          "storage_account": "${azurerm_storage_account.account.name}",
+          "storage_container": "dev"
+        },
+        "notebook_task": {
+          "notebook_path": "/terraformassets/mount.ipynb"
+        }
+      }
+JSON
+    ))
+  }
+}
 

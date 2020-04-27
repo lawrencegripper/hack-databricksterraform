@@ -29,7 +29,7 @@ function create {
     Write-Host "Starting create"
 
     # Create a list of what we uploaded to track in state 
-    $items = Get-ChildItem $uploadFolder | select -ExpandProperty Name
+    $items = Get-ChildItem $uploadFolder | Select-Object -ExpandProperty Name
 
     # This is idempotent (at the moment) so ok to rerun even if dir already exists
     databricks fs mkdirs "dbfs:/$uploadDest"
@@ -49,7 +49,7 @@ function read {
     Write-Host "Starting read"
 
     # Get the current status of the cluster
-    $itemsInClusterRaw = databricks fs ls "dbfs:/$uploadDest"
+    $itemsInClusterRaw = databricks fs ls "dbfs:/$uploadDest/"
     Test-ForDatabricksFSError $itemsInClusterRaw
 
     $itemsInCluster = $itemsInClusterRaw.Split([Environment]::NewLine)
@@ -73,7 +73,7 @@ function delete {
     #WARNING: This will remove the whole destination folder!
     # Ensure that this is only used for asset upload from terraform and not 
     # used to also store data or update the script to only delete named files.
-    $itemsInClusterRaw = databricks fs rm "dbfs:/$uploadDest"
+    $itemsInClusterRaw = databricks fs rm -r "dbfs:/$uploadDest"
     Test-ForDatabricksFSError $itemsInClusterRaw
     
     # Empty state update
@@ -85,10 +85,6 @@ function Test-ForDatabricksFSError($response) {
     # Currently CLI returns, for example::
     # - Error: The local file ./doesntexist does not exist.
     # - Error: b'{"error_code":"RESOURCE_ALREADY_EXISTS","message":"A file or directory already exists at the input path dbfs:/doesntexist/really/sure."}'
-    if (!$response) {
-        Throw "Failed to execute Databricks CLI. Null response: $response"
-    }
-    
     if ($response -like "Error: *") {
         Write-Host "CLI Response: $response"
         Throw "Failed to execute Databricks CLI. Error response."
