@@ -41,6 +41,7 @@ clusterupdate.json
 
 cluster.*.log
 secretscope.*.log
+runs.*.log
 upload.*.log
 secret.*.log
 terraform-provider-*

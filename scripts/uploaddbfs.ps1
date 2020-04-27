@@ -1,7 +1,7 @@
 param([String]$type)
 
 if ($ENV:debug_log) {
-    Start-Transcript -Path "./upload.$type.log"
+    Start-Transcript -Path "./upload.dbfs.$type.log"
 }
 
 # Terraform provider sends in current state

@@ -209,10 +209,10 @@ resource "shell_script" "secret_app_tenant" {
 
 resource "shell_script" "upload_assets" {
   lifecycle_commands {
-    create = "pwsh ${path.module}/scripts/upload.ps1 -type create"
-    read   = "pwsh ${path.module}/scripts/upload.ps1 -type read"
-    update = "pwsh ${path.module}/scripts/upload.ps1 -type update"
-    delete = "pwsh ${path.module}/scripts/upload.ps1 -type delete"
+    create = "pwsh ${path.module}/scripts/uploadworkspace.ps1 -type create"
+    read   = "pwsh ${path.module}/scripts/uploadworkspace.ps1 -type read"
+    update = "pwsh ${path.module}/scripts/uploadworkspace.ps1 -type update"
+    delete = "pwsh ${path.module}/scripts/uploadworkspace.ps1 -type delete"
   }
 
   environment = {
@@ -224,7 +224,10 @@ resource "shell_script" "upload_assets" {
   }
 }
 
-resource "shell_script" "mount_job" {
+
+# ToDo: This should be re-run once the upload assets task updates a file. 
+# currently it doesn't 
+resource "shell_script" "run_mount" {
   lifecycle_commands {
     create = "pwsh ${path.module}/scripts/runs.ps1 -type create"
     read   = "pwsh ${path.module}/scripts/runs.ps1 -type read"
@@ -246,11 +249,19 @@ resource "shell_script" "mount_job" {
           "storage_container": "dev"
         },
         "notebook_task": {
-          "notebook_path": "/terraformassets/mount.ipynb"
+          "notebook_path": "/Shared/terraformassets/mount",
+          "base_parameters": {
+            "storage_account": "${azurerm_storage_account.account.name}",
+            "storage_container": "dev"
+          }
         }
       }
 JSON
     ))
   }
+
+  depends_on = [
+    shell_script.upload_assets
+  ]
 }
 

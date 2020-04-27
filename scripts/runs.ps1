@@ -20,7 +20,7 @@ $headers = @{
 }
 
 function Get-RunIDFromJson($json) {
-    return $json | ConvertFrom-Json | Select-Object -Property run_id
+    return $json | ConvertFrom-Json | Select-Object -ExpandProperty run_id
 }
 
 function create {
@@ -54,7 +54,7 @@ function read {
 
     $runId = Get-RunIDFromJson $stdin
 
-    $response = Invoke-WebRequest "$databricksWorkspaceEndpoint/api/2.0/jobs/runs/get?id=$runId" `
+    $response = Invoke-WebRequest "$databricksWorkspaceEndpoint/api/2.0/jobs/runs/get?run_id=$runId" `
         -Headers $headers `
         -Method 'GET' `
         -ContentType 'application/json; charset=utf-8'
@@ -110,7 +110,7 @@ function Wait-ForRunState($runId, $wantedState, $alternativeState) {
             # API Docs
             # https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/jobs#--runs-get
 
-            $response = Invoke-WebRequest "$databricksWorkspaceEndpoint/api/2.0/runs/get?id=$runId" `
+            $response = Invoke-WebRequest "$databricksWorkspaceEndpoint/api/2.0/jobs/runs/get?run_id=$runId" `
                 -Headers $headers `
                 -Method 'GET' `
                 -ContentType 'application/json; charset=utf-8'
@@ -121,7 +121,9 @@ function Wait-ForRunState($runId, $wantedState, $alternativeState) {
             $response | ConvertFrom-Json | Select-Object -ExpandProperty "state" | Write-Host
 
             # Get the content of `state.result_state` from the json response
-            $state = $response | ConvertFrom-Json | Select-Object -ExpandProperty "state" | Select-Object -ExcludeProperty "result_state"
+            $state = $response | ConvertFrom-Json | Select-Object -ExpandProperty "state" | Select-Object -ExpandProperty "result_state"
+
+            Write-Host "State: $state"
         }
         catch {
             Write-Host "Failed to get run_id=$runId, retrying..."
