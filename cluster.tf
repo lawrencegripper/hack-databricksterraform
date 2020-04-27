@@ -181,6 +181,7 @@ resource "shell_script" "secret_app_client_secret" {
   ]
 }
 
+# Used to get current tenant ID
 data "azuread_client_config" "current" {
 }
 
@@ -205,4 +206,22 @@ resource "shell_script" "secret_app_tenant" {
     azuread_service_principal_password.datalake
   ]
 }
+
+resource "shell_script" "upload_assets" {
+  lifecycle_commands {
+    create = "pwsh ${path.module}/scripts/upload.ps1 -type create"
+    read   = "pwsh ${path.module}/scripts/upload.ps1 -type read"
+    update = "pwsh ${path.module}/scripts/upload.ps1 -type update"
+    delete = "pwsh ${path.module}/scripts/upload.ps1 -type delete"
+  }
+
+  environment = {
+    DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
+    debug_log        = true
+    upload_folder    = "${path.module}/assets"
+    upload_dest      = "terraformassets"
+  }
+}
+
 
