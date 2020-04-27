@@ -44,7 +44,7 @@ Describe "Get-ClusterIDFromJSON" {
 }
 
 Describe "Wait-ForClusterState" {
-    Context "With mocked Write-Information  and start-sleep" {
+    Context "With mocked Write-Host  and start-sleep" {
         Mock Start-Sleep { }
         
         
@@ -53,7 +53,7 @@ Describe "Wait-ForClusterState" {
         }
         
         It "returns correctly when in RUNNING state" {
-            Mock Write-Information  { }
+            Mock Write-Host  { }
             $expectedLine1 = "Checking cluster state. Have: RUNNING Want: RUNNING or . Sleeping for 5secs"
             $expectedLine2 = "Found cluster state. Have: RUNNING Want: RUNNING or "
             
@@ -63,16 +63,16 @@ Describe "Wait-ForClusterState" {
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING"
 
             Assert-MockCalled `
-                -CommandName Write-Information  `
+                -CommandName Write-Host  `
                 -Times 2 `
                 -Verbose `
                 -ParameterFilter { 
-                $Message -eq $expectedLine1 -or $Message -eq $expectedLine2 
+                $Object -eq $expectedLine1 -or $Object -eq $expectedLine2 
             } 
         }
 
         It "returns correctly when in TERMINATED state" {
-            Mock Write-Information  { }
+            Mock Write-Host  { }
 
             $expectedLine1 = "Checking cluster state. Have: TERMINATED Want: RUNNING or TERMINATED. Sleeping for 5secs"
             $expectedLine2 = "Found cluster state. Have: TERMINATED Want: RUNNING or TERMINATED"
@@ -83,10 +83,10 @@ Describe "Wait-ForClusterState" {
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING" -alternativeState "TERMINATED"
 
             Assert-MockCalled `
-                -CommandName Write-Information  `
+                -CommandName Write-Host  `
                 -Times 2 `
                 -ParameterFilter { 
-                $Message -eq $expectedLine1 -or $Message -eq $expectedLine2 
+                $Object -eq $expectedLine1 -or $Object -eq $expectedLine2 
             } 
         }
     }

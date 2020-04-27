@@ -24,7 +24,7 @@ function Get-RunIDFromJson($json) {
 }
 
 function create {
-    Write-Information  "Starting create"
+    Write-Host  "Starting create"
 
     $response = Invoke-WebRequest $databricksWorkspaceEndpoint/api/2.0/jobs/runs/submit `
         -Headers $headers `
@@ -51,7 +51,7 @@ function create {
 }
 
 function read {
-    Write-Information  "Starting read"
+    Write-Host  "Starting read"
 
     $runId = Get-RunIDFromJson $stdin
 
@@ -64,11 +64,11 @@ function read {
 
     #Filter to Job_id, Run_id and state then return for storage in 
     # terraform state
-    $response | Convertfrom-json | Select-object -Property job_id, run_id, state | ConvertTo-Json | Write-Information 
+    $response | Convertfrom-json | Select-object -Property job_id, run_id, state | ConvertTo-Json | Write-Host 
 }
 
 function update {
-    Write-Information  "Starting update (calls delete then create)"
+    Write-Host  "Starting update (calls delete then create)"
     # Delete the current job then recreate
     # Todo: Review for update
     delete
@@ -76,7 +76,7 @@ function update {
 }
 
 function delete {
-    Write-Information  "Starting delete"
+    Write-Host  "Starting delete"
 
     $runId = Get-RunIDFromJSON $stdin
 
@@ -119,20 +119,20 @@ function Wait-ForRunState($runId, $wantedState, $alternativeState) {
             test-response $response
 
             # Output for debugging
-            $response | ConvertFrom-Json | Select-Object -ExpandProperty "state" | Write-Information 
+            $response | ConvertFrom-Json | Select-Object -ExpandProperty "state" | Write-Host 
 
             # Get the content of `state.result_state` from the json response
             $state = $response | ConvertFrom-Json | Select-Object -ExpandProperty "state" | Select-Object -ExpandProperty "result_state"
 
-            Write-Information  "State: $state"
+            Write-Host  "State: $state"
         }
         catch {
-            Write-Information  "Failed to get run_id=$runId, retrying..."
+            Write-Host  "Failed to get run_id=$runId, retrying..."
         }
         Start-Sleep -Seconds 5    
     } until ($state -eq $wantedState -or $state -eq $alternativeState)
 
-    Write-Information  "Found run state. Have: $state Want: $wantedState or $alternativeState"
+    Write-Host  "Found run state. Have: $state Want: $wantedState or $alternativeState"
 }
 
 

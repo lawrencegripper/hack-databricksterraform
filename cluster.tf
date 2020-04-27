@@ -88,6 +88,7 @@ resource "shell_script" "pat_token" {
     pat_token_name  = "tf_pat_token"
     workspace_id    = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    debug_log        = true
   }
 }
 
