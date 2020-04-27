@@ -10,12 +10,12 @@ $stdin = $input
 
 # DatabricksCLI
 function Invoke-DatabricksCLI($command) {
-    Invoke-Expression $command
+    & $command
 }
 
 
 function create {
-    Write-Host "Starting create"
+    write-output "Starting create"
 
     $clusterDef = $ENV:cluster_json
     
@@ -36,7 +36,7 @@ function create {
                 throw
             }
             else {
-                Write-Host "Create failed. Retrying after wait..."
+                write-output "Create failed. Retrying after wait..."
                 Start-Sleep -Seconds 10
             }
         }
@@ -55,11 +55,11 @@ function create {
 
     # Write json to stdout for provider to pickup and store state in terraform 
     # importantly this allows us to track the `cluster_id` property for future read/update/delete ops
-    write-host $createResult
+    write-output $createResult
 }
 
 function read {
-    Write-Host "Starting read"
+    write-output "Starting read"
 
     $clusterID = Get-ClusterIDFromTFState
 
@@ -68,13 +68,13 @@ function read {
     Test-ForDatabricksError $getResult
     
     # Output just the cluster ID to workaround an issue with complex objects https://github.com/scottwinkler/terraform-provider-shell/issues/32
-    Write-host @"
+    write-output @"
     { "cluster_id": "$clusterID" }
 "@
 }
 
 function update {
-    Write-Host "Starting update"
+    write-output "Starting update"
 
     $clusterID = Get-ClusterIDFromTFState
     # Only allow edit on running/terminated clusters
@@ -93,13 +93,13 @@ function update {
 
     $updateResult = databricks clusters edit --json-file ./clusterupdate.json
     Test-ForDatabricksError $updateResult
-    Write-Host $updateResult
+    write-output $updateResult
 
     Wait-ForClusterState $clusterDef "RUNNING"
 }
 
 function delete {
-    Write-Host "Starting delete"
+    write-output "Starting delete"
     $clusterID = Get-ClusterIDFromTFState
 
     $deleteResult = databricks clusters delete --cluster-id $clusterID
@@ -107,7 +107,7 @@ function delete {
         Throw "Failed to execute Databricks CLI. Error: $response"
     }
     
-    Write-Host "Cluster deleted"
+    write-output "Cluster deleted"
 
     Wait-ForClusterState $clusterDef "TERMINATED"
 }
@@ -123,7 +123,7 @@ function Get-ClusterIDFromJSON($json) {
     if (!$clusterID) {
         Throw "Failed to get ClusterID from state: $input"
     }
-    Write-Host "Found ClusterID from Terraform state: $clusterID"
+    write-output "Found ClusterID from Terraform state: $clusterID"
     return $clusterID
 }
 
@@ -139,15 +139,15 @@ function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
             Test-ForDatabricksError $getResult
 
             $state = $getResult | Convertfrom-json | select-object -expandproperty state
-            Write-Host "Checking cluster state. Have: $state Want: $wantedState or $alternativeState. Sleeping for 5secs"
+            write-output "Checking cluster state. Have: $state Want: $wantedState or $alternativeState. Sleeping for 5secs"
         }
         catch {
-            Write-Host "Failed to get $clusterID, retrying..."
+            write-output "Failed to get $clusterID, retrying..."
         }
         Start-Sleep -Seconds 5    
     } until ($state -eq $wantedState -or $state -eq $alternativeState)
 
-    Write-Host "Found cluster state. Have: $state Want: $wantedState or $alternativeState"
+    write-output "Found cluster state. Have: $state Want: $wantedState or $alternativeState"
 }
 
 function Test-ForDatabricksError($response) {
@@ -158,7 +158,7 @@ function Test-ForDatabricksError($response) {
     }
     
     if ($response -like "Error: *") {
-        Write-Host "CLI Response: $response"
+        write-output "CLI Response: $response"
         Throw "Failed to execute Databricks CLI. Error response."
     }
 
@@ -166,7 +166,7 @@ function Test-ForDatabricksError($response) {
         $response | ConvertFrom-Json
     }
     catch {
-        Write-Host "Failed to execute Databricks CLI. Invalid Json response. CLI Response: $response"
+        write-output "Failed to execute Databricks CLI. Invalid Json response. CLI Response: $response"
         Throw 
     }
 }

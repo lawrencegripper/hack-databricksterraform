@@ -27,7 +27,7 @@ function Get-CurrentKey {
 }
 
 function create {
-    Write-Host "Starting create"
+    write-output "Starting create"
     
     $secret = @"
         {
@@ -54,7 +54,7 @@ function create {
 }
 
 function read {
-    Write-Host "Starting read"
+    write-output "Starting read"
 
     $response = Invoke-WebRequest "$databricksWorkspaceEndpoint/api/2.0/secrets/list?scope=$scopeName" `
         -Headers $headers `
@@ -67,8 +67,8 @@ function read {
     foreach ($secret in $secrets) {
         if ($secret.key -eq $currentKey) {
             $json = $secret | ConvertTo-Json
-            Write-Host "Found secret:"
-            Write-Host $json
+            write-output "Found secret:"
+            write-output $json
             return
         }
     }
@@ -77,14 +77,14 @@ function read {
 }
 
 function update {
-    Write-Host "Starting update (calls delete then create)"
+    write-output "Starting update (calls delete then create)"
     # No need for delete as `create` is a put so will update the secret
     # https://docs.databricks.com/dev-tools/api/latest/secrets.html#put-secret
     create
 }
 
 function delete {
-    Write-Host "Starting delete"
+    write-output "Starting delete"
 
     $currentKey = Get-CurrentKey
 

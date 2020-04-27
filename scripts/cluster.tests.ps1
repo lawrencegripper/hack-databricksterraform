@@ -19,12 +19,14 @@ Describe "Test-ForDatabricksError" {
 
 Describe "Get-ClusterIDFromTFState" {
     It "returns error when invalid state" {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification='Used by the code under test')]
         $stdin = "invalidState"
         { Get-ClusterIDFromTFState } | Should -Throw 
     }
 
     It "returns ID for valid state" {
-        $stdin =  "{ 'cluster_id': 'bob' }"
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification='Used by the code under test')]
+        $stdin = "{ 'cluster_id': 'bob' }"
         Get-ClusterIDFromTFState | Should -BeExactly "bob"
     }
 }
@@ -40,9 +42,9 @@ Describe "Get-ClusterIDFromJSON" {
 }
 
 Describe "Wait-ForClusterState" {
-    Context "With mocked Write-host and start-sleep" {
-        Mock Write-host { }
-        Mock Start-Sleep {}
+    Context "With mocked write-output and start-sleep" {
+        Mock write-output { }
+        Mock Start-Sleep { }
 
     
         It "returns error when invalid clusterID passed" {
@@ -59,7 +61,7 @@ Describe "Wait-ForClusterState" {
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING"
 
             Assert-MockCalled `
-                -CommandName Write-host `
+                -CommandName write-output `
                 -Times 2 `
                 -ParameterFilter { 
                 $Object -eq $expectedLine1 -or $Object -eq $expectedLine2 
@@ -76,7 +78,7 @@ Describe "Wait-ForClusterState" {
             Wait-ForClusterState -clusterID "bob" -wantedState "RUNNING" -alternativeState "TERMINATED"
 
             Assert-MockCalled `
-                -CommandName Write-host `
+                -CommandName write-output `
                 -Times 2 `
                 -ParameterFilter { 
                 $Object -eq $expectedLine1 -or $Object -eq $expectedLine2 
