@@ -93,6 +93,7 @@ ENV LANG=C.UTF-8
 # Install powershell unit testing framework
 RUN pwsh -c "Install-Module -Name Pester -Force"
 RUN pwsh -c "Install-Module -Name PSake -Force"
+RUN pwsh -c "Install-Module -Name PSScriptAnalyzer -Force"
 
 # Install jupyter for notebook tooling
 RUN pip3 install jupyter

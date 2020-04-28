@@ -26,7 +26,7 @@ function Get-CurrentName {
 }
 
 function create {
-    Write-Host "Starting create"
+    Write-Host  "Starting create"
     
     $response = Invoke-WebRequest $databricksWorkspaceEndpoint/api/2.0/secrets/scopes/create `
         -Headers $headers `
@@ -41,17 +41,17 @@ function create {
 
     test-response $response
 
-    write-host $response.Content
+    Write-Host  $response.Content
 
-    Write-host @"
+    Write-Host  @"
     {
-        "name": "$scopeName",
+        "name": "$scopeName"
     }
 "@
 }
 
 function read {
-    Write-Host "Starting read"
+    Write-Host  "Starting read"
 
     $response = Invoke-WebRequest "$databricksWorkspaceEndpoint/api/2.0/secrets/scopes/list" `
         -Headers $headers `
@@ -61,26 +61,30 @@ function read {
     $scopes = $response.Content | ConvertFrom-JSON | select-object -expandProperty scopes
 
     $currentName = Get-CurrentName
+    if (-not $currentName) {
+        throw "Current name is empty in state"
+    }
+
     foreach ($scope in $scopes) {
         if ($scope.name -eq $currentName) {
             $json = $scope | ConvertTo-Json
-            Write-Host "Found scope:"
-            Write-Host $json
+            Write-Host  "Found scope:"
+            Write-Host  $json
             return
         }
     }
 
-    Write-Error "'$name' not found in workspace!"
+    Write-Error "'$currentName' not found in workspace!"
 }
 
 function update {
-    Write-Host "Starting update (calls delete then create)"
+    Write-Host  "Starting update (calls delete then create)"
     delete
     create
 }
 
 function delete {
-    Write-Host "Starting delete"
+    Write-Host  "Starting delete"
 
     $currentName = Get-CurrentName
 

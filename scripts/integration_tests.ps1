@@ -17,15 +17,15 @@ Describe "Terraform Deployment" {
         $randomGroupNum = Get-Random
         $ENV:TF_VAR_group_name = "inttest$randomGroupNum"
 
-        Write-Host "Using ResourceGroup: $ENV:TF_VAR_group_name"
+        Write-Host  "Using ResourceGroup: $ENV:TF_VAR_group_name"
 
         # Run terraform
-        Write-Host "Applying terraform from scratch"
+        Write-Host  "Applying terraform from scratch"
         $tfOutput = terraform apply -auto-approve
-        Write-Host $tfOutput
+        Write-Host  $tfOutput
         $LASTEXITCODE | Should -Be 0
 
-        Write-Host "terraform apply completed"
+        Write-Host  "terraform apply completed"
     
         # Get state after `terraform apply`
         $tfState = terraform show -json | ConvertFrom-Json
@@ -63,7 +63,8 @@ Describe "Terraform Deployment" {
             $response = $responseRaw | ConvertFrom-Json
             if ($cluster.values.environment.wait_for_state) {
                 $response.state | Should -Be $cluster.values.environment.wait_for_state
-            } else {
+            }
+            else {
                 $response.state | Should -Be "RUNNING"
             }
         }
@@ -75,12 +76,12 @@ Describe "Terraform Deployment" {
             # https://www.terraform.io/docs/commands/plan.html#detailed-exitcode
             #
             # If this test fails it shows an issue with the `read` command returning different data between calls.
-            Write-Host "Running terraform plan"
+            Write-Host  "Running terraform plan"
 
             terraform plan -out plan.tfstate -detailed-exitcode
             
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "Detected terraform changes:"
+                Write-Host  "Detected terraform changes:"
                 terraform show plan.tfstate
             }
 
@@ -112,11 +113,11 @@ Describe "Terraform Destroy" {
         }
 
         It "destroy the cluster and check it's terminated" {
-            Write-host "Destroying terraform"
+            Write-Host  "Destroying terraform"
             $tfOutput = terraform destroy -var group_name=$resourceGroup.values.name -auto-approve -target='shell_script.cluster'
             $LASTEXITCODE | Should -Be 0
 
-            Write-Host $tfOutput
+            Write-Host  $tfOutput
 
             $cluster.values.output.cluster_id | Should -Not -BeNullOrEmpty
             

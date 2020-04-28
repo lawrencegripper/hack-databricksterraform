@@ -20,11 +20,11 @@ if ($PSVersionTable.PSVersion -gt [Version]'6.1.0.0') {
     }
 }
 
-write-host "Downloading shell provider $fileEx"
+Write-Host  "Downloading shell provider $fileEx"
 
 $downloadUrl = "https://github.com/scottwinkler/terraform-provider-shell/releases/download/v1.3.1/terraform-provider-shell_v1.3.1$($fileEx)"
 
-Write-Host $downloadUrl
+Write-Host  $downloadUrl
 
 
 Invoke-WebRequest -Uri $downloadUrl -OutFile "terraform-provider-shell.zip"
@@ -34,13 +34,14 @@ if ($IsLinux -or $IsMacOS) {
     chmod +x "terraform-provider-shell_v1.3.1"
     mkdir -p ~/.terraform.d/plugins
     cp ./terraform-provider-shell_v1.3.1 ~/.terraform.d/plugins
-} else {
+}
+else {
     Expand-Archive .\terraform-provider-shell.zip
     New-Item $env:APPDATA\terraform.d\plugins -ItemType Directory -ErrorAction SilentlyContinue
-    copy terraform-provider-shell\terraform-provider-shell_v1.3.1.exe $env:APPDATA\terraform.d\plugins
+    Copy-Item terraform-provider-shell\terraform-provider-shell_v1.3.1.exe $env:APPDATA\terraform.d\plugins
 }
 
 
-write-host "Installing databricks cli"
+Write-Host  "Installing databricks cli"
 
 pip3 install databricks-cli==0.9.1

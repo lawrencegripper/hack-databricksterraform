@@ -88,6 +88,7 @@ resource "shell_script" "pat_token" {
     pat_token_name  = "tf_pat_token"
     workspace_id    = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
+    debug_log       = true
   }
 }
 
@@ -102,6 +103,7 @@ resource "shell_script" "cluster" {
   working_directory = path.module
 
   environment = {
+    workspace_id     = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
     wait_for_state   = "PENDING"
@@ -132,6 +134,7 @@ resource "shell_script" "secret_scope" {
   }
 
   environment = {
+    workspace_id             = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST          = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN         = shell_script.pat_token.output["token_value"]
     secret_scope_name        = "terraform"
@@ -149,6 +152,7 @@ resource "shell_script" "secret_sp_applicationid" {
   }
 
   environment = {
+    workspace_id      = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
     secret_scope_name = shell_script.secret_scope.output["name"]
@@ -168,6 +172,7 @@ resource "shell_script" "secret_app_client_secret" {
   }
 
   environment = {
+    workspace_id      = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
     secret_scope_name = shell_script.secret_scope.output["name"]
@@ -194,6 +199,7 @@ resource "shell_script" "secret_app_tenant" {
   }
 
   environment = {
+    workspace_id      = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST   = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN  = shell_script.pat_token.output["token_value"]
     secret_scope_name = shell_script.secret_scope.output["name"]
@@ -216,6 +222,7 @@ resource "shell_script" "upload_assets" {
   }
 
   environment = {
+    workspace_id     = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
     debug_log        = true
@@ -236,6 +243,7 @@ resource "shell_script" "run_mount" {
   }
 
   environment = {
+    workspace_id     = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST  = "https://${azurerm_resource_group.example.location}.azuredatabricks.net"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
     debug_log        = true
@@ -260,8 +268,12 @@ JSON
     ))
   }
 
+  # Needs the assets uploaded and secrets created before it can run
   depends_on = [
-    shell_script.upload_assets
+    shell_script.upload_assets,
+    shell_script.secret_app_client_secret,
+    shell_script.secret_sp_applicationid,
+    shell_script.secret_app_tenant
   ]
 }
 

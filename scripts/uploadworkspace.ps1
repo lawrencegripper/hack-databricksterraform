@@ -4,17 +4,8 @@ if ($ENV:debug_log) {
     Start-Transcript -Path "./upload.workspace.$type.log"
 }
 
-# Terraform provider sends in current state
-# as a json object to stdin
-$stdin = $input
-
 $uploadFolder = $env:upload_folder
 $uploadDest = $env:upload_dest
-
-# DatabricksCLI
-function Invoke-DatabricksCLI($command) {
-    Invoke-Expression $command
-}
 
 function Test-UploadFolder($path) {
     if (Test-Path $path -PathType Container) {
@@ -26,7 +17,7 @@ function Test-UploadFolder($path) {
 
 
 function create {
-    Write-Host "Starting create"
+    Write-Host  "Starting create"
 
     # Create a list of what we uploaded to track in state 
     $items = Get-ChildItem $uploadFolder | Select-Object -ExpandProperty Name
@@ -39,11 +30,11 @@ function create {
     # importantly this allows us to track the `cluster_id` property for future read/update/delete ops
     $itemsState = @{ files = $items } | ConvertTo-Json
     
-    Write-Host $itemsState
+    Write-Host  $itemsState
 }
 
 function read {
-    Write-Host "Starting read"
+    Write-Host  "Starting read"
 
     # Get the current status of the cluster
     $itemsInClusterRaw = databricks workspace ls /Shared/$uploadDest
@@ -52,11 +43,11 @@ function read {
     $itemsInCluster = $itemsInClusterRaw.Split([Environment]::NewLine)
     
     # Output just the cluster ID to workaround an issue with complex objects https://github.com/scottwinkler/terraform-provider-shell/issues/32
-    @{ files = $itemsInCluster } | ConvertTo-Json | Write-host
+    @{ files = $itemsInCluster } | ConvertTo-Json | Write-Host 
 }
 
 function update {
-    Write-Host "Starting update"
+    Write-Host  "Starting update"
     # WARNING: This will remove everything in the dest including the folder
     # and reupload all files. In future this can be updated to be more targetted
     delete
@@ -64,7 +55,7 @@ function update {
 }
 
 function delete {
-    Write-Host "Starting delete"
+    Write-Host  "Starting delete"
 
 
     #WARNING: This will remove the whole destination folder!
@@ -74,7 +65,7 @@ function delete {
     Test-ForDatabricksFSError $itemsInClusterRaw
     
     # Empty state update
-    Write-host "{}"
+    Write-Host  "{}"
 }
 
 function Test-ForDatabricksFSError($response) {
@@ -83,7 +74,7 @@ function Test-ForDatabricksFSError($response) {
     # - Error: The local file ./doesntexist does not exist.
     # - Error: b'{"error_code":"RESOURCE_ALREADY_EXISTS","message":"A file or directory already exists at the input path dbfs:/doesntexist/really/sure."}'
     if ($response -like "Error: *") {
-        Write-Host "CLI Response: $response"
+        Write-Host  "CLI Response: $response"
         Throw "Failed to execute Databricks CLI. Error response."
     }
 }
