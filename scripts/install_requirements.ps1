@@ -1,6 +1,6 @@
 
 # Skip if installed already
-if ((Get-Command "databricks" -errorAction SilentlyContinue) -and ((Test-Path -Path "./terraform-provider-shell" -errorAction SilentlyContinue))) {
+if ((Get-Command "databricks" -errorAction SilentlyContinue) -and ((Test-Path -Path "./terraform-provider-shell.zip" -errorAction SilentlyContinue))) {
     # Skip as already exists
     exit 0
 }

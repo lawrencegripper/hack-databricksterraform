@@ -135,7 +135,7 @@ function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
         Throw "Error: Cluster ID empty"
     }
     # Wait for cluster to be ready
-    $state = ""
+    $state = "local_not_set_state"
     do {
         try {
             $getResult = Invoke-DatabricksCLI "databricks clusters get --cluster-id $clusterID"

@@ -105,7 +105,7 @@ function Wait-ForRunState($runId, $wantedState, $alternativeState) {
     if (!$runId) {
         Throw "Error: runId empty"
     }
-    $state = ""
+    $state = "local_not_set_state"
     do {
         try {
             # API Docs
