@@ -10,7 +10,7 @@ $stdin = $input
 
 # DatabricksCLI
 function Invoke-DatabricksCLI {
-    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Scope='Function', Justification='Todo revisit this and find alternative')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Scope = 'Function', Justification = 'Todo revisit this and find alternative')]
     param($command)
 
     Invoke-Expression $command
@@ -131,6 +131,8 @@ function Get-ClusterIDFromJSON($json) {
 }
 
 function Wait-ForClusterState($clusterID, $wantedState, $alternativeState) {
+    $ErrorActionPreference = "Stop"
+
     if (!$clusterID) {
         Throw "Error: Cluster ID empty"
     }
