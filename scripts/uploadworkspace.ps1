@@ -26,11 +26,8 @@ function create {
     
     Test-ForDatabricksFSError $createResult
     
-    # Write json to stdout for provider to pickup and store state in terraform 
-    # importantly this allows us to track the `cluster_id` property for future read/update/delete ops
-    $itemsState = @{ files = $items } | ConvertTo-Json
-    
-    Write-Host  $itemsState
+    # Invoke read to output the current state of the workspace folder
+    read
 }
 
 function read {
@@ -38,7 +35,7 @@ function read {
 
     # Get the current status of the cluster
     $itemsInClusterRaw = databricks workspace ls /Shared/$uploadDest
-    Test-ForDatabricksFSError $itemsInClusterRaw
+    # Note: Continue on error and return empty or error into state which will trigger update
 
     $itemsInCluster = $itemsInClusterRaw.Split([Environment]::NewLine)
     
@@ -61,8 +58,8 @@ function delete {
     #WARNING: This will remove the whole destination folder!
     # Ensure that this is only used for asset upload from terraform and not 
     # used to also store data or update the script to only delete named files.
-    $itemsInClusterRaw = databricks workspace rm -r /Shared/$uploadDest
-    Test-ForDatabricksFSError $itemsInClusterRaw
+    databricks workspace rm -r /Shared/$uploadDest
+    # Note: Continue on error and return empty or error into state which will trigger update
     
     # Empty state update
     Write-Host  "{}"
