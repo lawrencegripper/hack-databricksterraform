@@ -26,6 +26,9 @@ function Get-CurrentName {
 }
 
 function create {
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification='$stdin used to pass between funcs. Todo refactor')]
+    param()
+    
     Write-Host  "Starting create"
     
     $response = Invoke-WebRequest $databricksWorkspaceEndpoint/api/2.0/secrets/scopes/create `

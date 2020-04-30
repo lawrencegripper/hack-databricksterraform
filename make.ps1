@@ -28,7 +28,11 @@ task "fixup" {
 
 task "checks" -depends "installRequirements", "clean" {
     Write-Host  ">> Powershell Script Analyzer"
-    exec { Invoke-ScriptAnalyzer -Path ./scripts -Recurse -Settings PSGallery -EnableExit }
+    $saResults = Invoke-ScriptAnalyzer -Path ./scripts -Recurse -Settings PSGallery 
+    if ($saResults) {
+        $saResults | Format-Table  
+        Write-Error -Message 'One or more Script Analyzer errors/warnings where found. Build cannot continue!'        
+    }
 
     Write-Host  ">> Terraform verion"
     exec { terraform -version }

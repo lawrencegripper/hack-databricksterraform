@@ -19,9 +19,6 @@ function Test-UploadFolder($path) {
 function create {
     Write-Host  "Starting create"
 
-    # Create a list of what we uploaded to track in state 
-    $items = Get-ChildItem $uploadFolder | Select-Object -ExpandProperty Name
-
     $createResult = databricks workspace import_dir -o $uploadFolder /Shared/$uploadDest
     
     Test-ForDatabricksFSError $createResult
