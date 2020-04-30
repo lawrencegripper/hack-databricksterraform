@@ -43,11 +43,12 @@ function create {
 
     Write-Host  $response.Content
 
-    Write-Host  @"
+    $stdin =   @"
     {
         "name": "$scopeName"
     }
 "@
+    read
 }
 
 function read {
