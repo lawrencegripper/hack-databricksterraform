@@ -45,12 +45,12 @@ resource "azurerm_storage_account" "account" {
 # Retrieve the new workspace URL added in a recent databricks release
 # https://docs.microsoft.com/en-us/azure/databricks/release-notes/product/2020/april#unique-urls-for-each-azure-databricks-workspace
 data "shell_script" "workspaceHack" {
-	lifecycle_commands {
-		read = "pwsh ${path.module}/../../scripts/workspace.ps1"
-	}
+  lifecycle_commands {
+    read = "pwsh ${path.module}/../../scripts/workspace.ps1"
+  }
 
   environment = {
-    workspace_id    = azurerm_databricks_workspace.example.id
+    workspace_id = azurerm_databricks_workspace.example.id
   }
 }
 
@@ -75,9 +75,9 @@ resource "shell_script" "pat_token" {
 
   # triggers a force new update
   # This causes the resource to be recreated if the workspace has been recreated
-	triggers = {
-		when_value_changed = data.shell_script.workspaceHack.output["workspaceURL"]
-	}
+  triggers = {
+    when_value_changed = data.shell_script.workspaceHack.output["workspaceURL"]
+  }
 }
 
 resource "shell_script" "cluster" {
@@ -91,7 +91,7 @@ resource "shell_script" "cluster" {
   working_directory = "${path.module}/../../scripts/"
 
   environment = {
-    workspace_id    = azurerm_databricks_workspace.example.id
+    workspace_id     = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST  = "https://${data.shell_script.workspaceHack.output["workspaceURL"]}"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
     wait_for_state   = "PENDING"
@@ -113,8 +113,8 @@ JSON
 
   # triggers a force new update
   # This causes the resource to be recreated if the workspace has been recreated
-	triggers = {
-		when_value_changed = data.shell_script.workspaceHack.output["workspaceURL"]
-	}
+  triggers = {
+    when_value_changed = data.shell_script.workspaceHack.output["workspaceURL"]
+  }
 }
 
