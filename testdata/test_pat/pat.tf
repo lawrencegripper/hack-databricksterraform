@@ -57,11 +57,14 @@ data "shell_script" "workspaceHack" {
 # Create cluster
 resource "shell_script" "pat_token" {
   lifecycle_commands {
-    create = "pwsh ${path.module}/../../scripts/pat.ps1 -type create"
-    read   = "pwsh ${path.module}/../../scripts/pat.ps1 -type read"
-    update = "pwsh ${path.module}/../../scripts/pat.ps1 -type update"
-    delete = "pwsh ${path.module}/../../scripts/pat.ps1 -type delete"
+    create = "pwsh ./pat.ps1 -type create"
+    read   = "pwsh ./pat.ps1 -type read"
+    update = "pwsh ./pat.ps1 -type update"
+    delete = "pwsh ./pat.ps1 -type delete"
   }
+
+  working_directory = "${path.module}/../../scripts/"
+
 
   environment = {
     pat_token_name  = "tf_pat_token"
@@ -79,15 +82,16 @@ resource "shell_script" "pat_token" {
 
 resource "shell_script" "cluster" {
   lifecycle_commands {
-    create = "pwsh ${path.module}/../../scripts/cluster.ps1 -type create"
-    read   = "pwsh ${path.module}/../../scripts/cluster.ps1 -type read"
-    update = "pwsh ${path.module}/../../scripts/cluster.ps1 -type update"
-    delete = "pwsh ${path.module}/../../scripts/cluster.ps1 -type delete"
+    create = "pwsh ./cluster.ps1 -type create"
+    read   = "pwsh ./cluster.ps1 -type read"
+    update = "pwsh ./cluster.ps1 -type update"
+    delete = "pwsh ./cluster.ps1 -type delete"
   }
 
-  working_directory = path.module
+  working_directory = "${path.module}/../../scripts/"
 
   environment = {
+    workspace_id    = azurerm_databricks_workspace.example.id
     DATABRICKS_HOST  = "https://${data.shell_script.workspaceHack.output["workspaceURL"]}"
     DATABRICKS_TOKEN = shell_script.pat_token.output["token_value"]
     wait_for_state   = "PENDING"

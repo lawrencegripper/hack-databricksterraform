@@ -4,6 +4,8 @@ if ($ENV:debug_log) {
     Start-Transcript -Path "./pat.$type.log"
 }
 
+. ./sharedfuncs.ps1
+
 # Terraform provider sends in current state
 # as a json object to stdin
 $stdin = $input
@@ -51,6 +53,11 @@ function create {
 function read {
     Write-Host  "Starting read"
 
+    if (-not (Test-DBWorkspaceExists $databricksWorkspaceID)) {
+        Write-Host "Workspace doesn't exist, returning."
+        return
+    }
+
     $currentToken = $stdin | ConvertFrom-Json
     $tokenID = $currentToken.token_id
 
@@ -87,6 +94,10 @@ function update {
 function delete {
     Write-Host  "Starting delete"
 
+    if (-not (Test-DBWorkspaceExists $databricksWorkspaceID)) {
+        Write-Host "Workspace doesn't exist, returning."
+        return
+    }
 
     $currentToken = $stdin | ConvertFrom-Json
     $tokenID = $currentToken.token_value

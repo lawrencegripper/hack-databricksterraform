@@ -4,9 +4,14 @@ if ($ENV:debug_log) {
     Start-Transcript -Path "./cluster.$type.log"
 }
 
+. ./sharedfuncs.ps1
+
 # Terraform provider sends in current state
 # as a json object to stdin
 $stdin = $input
+
+# Like - /subscriptions/GUID-HERE/resourceGroups/osplatform/providers/Microsoft.Databricks/workspaces/lgtestus
+$databricksWorkspaceID = $env:workspace_id
 
 # DatabricksCLI
 function Invoke-DatabricksCLI {
@@ -64,6 +69,11 @@ function create {
 function read {
     Write-Host  "Starting read"
 
+    if (-not (Test-DBWorkspaceExists $databricksWorkspaceID)) {
+        Write-Host "Workspace doesn't exist, returning."
+        return
+    }
+
     $clusterID = Get-ClusterIDFromTFState
 
     # Get the current status of the cluster
@@ -103,6 +113,12 @@ function update {
 
 function delete {
     Write-Host  "Starting delete"
+
+    if (-not (Test-DBWorkspaceExists $databricksWorkspaceID)) {
+        Write-Host "Workspace doesn't exist, returning."
+        return
+    }
+
     $clusterID = Get-ClusterIDFromTFState
 
     $deleteResult = databricks clusters delete --cluster-id $clusterID
