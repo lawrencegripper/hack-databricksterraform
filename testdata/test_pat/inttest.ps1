@@ -1,5 +1,5 @@
 $scriptDir = Split-Path -parent $PSCommandPath
-Set-Location "$scriptDir/../"
+Set-Location "$scriptDir"
 
 function Get-ResourceState($resources, $address) {
     return $resources | Where-Object { $_.address -eq $address }
@@ -9,13 +9,10 @@ function Get-ResourceState($resources, $address) {
 # in the databricks workspace and cannot. In this case it should trigger them to be recreated. 
 # This test catches bugs that instead cause terraform to error when this occurs. 
 Describe "Terraform Deployment then taint and recreate workspace" { 
-    # Use limited test tf
-    Set-Location ./testdata/test_pat 
-
     
     Context "with clean tfstate" {
         # Remove state so no resources current tracked by tf
-        # Remove-Item ./terraform.tfstate -Force
+        Remove-Item ./terraform.tfstate -Force
 
         # Initilize terraform
         terraform init
