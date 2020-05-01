@@ -60,6 +60,8 @@ function read {
         -Headers $headers `
         -Method 'GET'
 
+    test-response $response
+
     $tokens = $response.Content | ConvertFrom-JSON | select-object -expandProperty token_infos
 
     foreach ($token in $tokens) {
@@ -73,8 +75,7 @@ function read {
         }
     }
 
-    Write-Error "Error tokenID '$tokenID' not found in workspace!"
-    exit 1
+    Write-Host "Error tokenID '$tokenID' not found in workspace!"
 }
 
 function update {
