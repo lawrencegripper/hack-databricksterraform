@@ -24,6 +24,7 @@ function create {
     Test-ForDatabricksFSError $createResult
     
     # Invoke read to output the current state of the workspace folder
+    # Todo: Review is values needed from state
     read
 }
 

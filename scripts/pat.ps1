@@ -68,7 +68,7 @@ function read {
             # as this contains the `token_value` where as the `list` endpoint doesn't
             # return this data
             $json = $currentToken | ConvertTo-Json
-            Write-Host  $json
+            Write-Host $json
             return
         }
     }

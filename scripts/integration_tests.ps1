@@ -78,6 +78,10 @@ Describe "Terraform Deployment" {
             # If this test fails it shows an issue with the `read` command returning different data between calls.
             Write-Host  "Running terraform plan"
 
+            # Sleep for a bit to simluate a delay between plan runs. This will assist in capturing a class 
+            # of bug in which the API response contains a timestamp which is accidentally persisted into the state file.
+            start-sleep -seconds 15
+
             terraform plan -out plan.tfstate -detailed-exitcode
             
             if ($LASTEXITCODE -ne 0) {
