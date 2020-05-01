@@ -93,13 +93,11 @@ function delete {
 
     $headers = get-AuthHeaders
     # Check the existing PAT tokens to see if ours already exists
-    $response = Invoke-WebRequest $databricksWorkspaceEndpoint/api/2.0/token/delete `
+    Invoke-WebRequest $databricksWorkspaceEndpoint/api/2.0/token/delete `
         -Headers $headers `
         -Method 'POST' `
         -ContentType 'application/json; charset=utf-8' `
         -Body "{`"token_id`": `"$tokenID`"}"
-
-    test-response $response
 }
 
 function test-response($response) {

@@ -111,14 +111,12 @@ function delete {
     }
     
     Write-Host  "Cluster deleted"
-
-    Wait-ForClusterState -clusterID $clusterDef -wantedState "TERMINATED"
 }
 
 # Read the stdin passed in by provider. This is the JSON formatted current state of the object as known by 
 # terraform. This allows us to get the `cluster_id` property. 
 function Get-ClusterIDFromTFState {
-    return Get-ClusterIDFromJSON($stdin)
+    return Get-ClusterIDFromJSON $stdin
 }
 
 function Get-ClusterIDFromJSON($json) {
