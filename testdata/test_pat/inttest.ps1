@@ -121,7 +121,7 @@ Describe "Terraform Deployment then taint and recreate workspace" {
         }
 
         It "cleans up whole resource group" {
-            az group delete --name $resourceGroup.values.name  --no-wait -y
+            az group delete --name $resourceGroup.values.name --no-wait -y
             $LASTEXITCODE | Should -Be 0
         }
     }
