@@ -1,3 +1,7 @@
+# WARNING - Unmaintained
+
+I recommend reviewing this [databricks labs](https://github.com/databrickslabs/databricks-terraform) project as an alternative.
+
 # What does it do?
 
 Creates a:
