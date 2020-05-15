@@ -13,7 +13,7 @@ Creates a:
 # Run 
 
 1. Have `azurecli` installed and logged in, have `python3` and `pip3` installed.
-1. Run `invoke-psake ./psake.ps1 installRequirements`
+1. Run `invoke-psake ./make.ps1 installRequirements`
 1. Run `terraform apply -auto-approve -var 'group_name=yourGroupNameHere'` (run `terraform plan` first if you want to see what will be created)
 1. See cluster created
 
